@@ -94,31 +94,39 @@ Reporting on civic memory.</p>
     <div className="mt-8 flex flex-wrap items-center gap-x-12 gap-y-4 opacity-90">
         
         <img
-        src="/images/logos/la-screenplay.png"
-        className="h-14 grayscale"
-      />
-  
-  
-      <img
-        src="/images/logos/shorty.svg"
-        className="h-14 grayscale"
-      />
-      
-      
-      <img
-        src="/images/logos/save_the_cat.png"
-        className="h-14 grayscale"
-      />
+  src="/images/logos/la-screenplay.png"
+  alt="LA Screenplay Awards"
+  className="h-14 w-auto opacity-80"
+  loading="lazy"
+/>
 
-      <img
-        src="/images/logos/webby.png"
-        className="h-14 grayscale"
-      />
+<img
+  src="/images/logos/shorty.svg"
+  alt="Shorty Awards"
+  className="h-14 w-auto opacity-80"
+  loading="lazy"
+/>
 
-      <img
-        src="/images/logos/RIFF.png"
-        className="h-14 grayscale"
-      />
+<img
+  src="/images/logos/save_the_cat.png"
+  alt="Save the Cat"
+  className="h-14 w-auto opacity-80"
+  loading="lazy"
+/>
+
+<img
+  src="/images/logos/webby.png"
+  alt="Webby Awards"
+  className="h-14 w-auto opacity-80"
+  loading="lazy"
+/>
+
+<img
+  src="/images/logos/riff.png"
+  alt="Richmond International Film Festival"
+  className="h-14 w-auto opacity-80"
+  loading="lazy"
+/>
 
 </div>
 
