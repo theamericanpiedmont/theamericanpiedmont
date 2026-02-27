@@ -101,7 +101,7 @@ Reporting on civic memory.</p>
 />
 
 <img
-  src="/images/logos/shorty.svg"
+  src="/images/logos/Shorty.svg"
   alt="Shorty Awards"
   className="h-14 w-auto opacity-80"
   loading="lazy"
