@@ -1,26 +1,57 @@
 @import "tailwindcss";
 
+/* ---------- Theme tokens ---------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --tap-paper: #f6f4ee;
+  --tap-ink: #111113;
+
+  /* populated by next/font in layout.tsx */
+  --serif: var(--font-serif);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ---------- Base page styling ---------- */
+html,
+body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--tap-paper);
+  color: var(--tap-ink);
+  font-family: var(--serif), ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+/* Optional: slightly nicer selection */
+::selection {
+  background: rgba(123, 47, 35, 0.18);
+}
+
+/* ---------- Longform typography (PortableText) ---------- */
+/* Use a wrapper class so we don't accidentally style everything everywhere. */
+.tap-article p {
+  margin: 1.25rem 0;
+  line-height: 1.75;
+}
+
+.tap-article h2,
+.tap-article h3 {
+  margin-top: 2.25rem;
+  margin-bottom: 1rem;
+}
+
+.tap-article ul,
+.tap-article ol {
+  margin: 1.25rem 0;
+  padding-left: 1.5rem;
+}
+
+.tap-article blockquote {
+  margin: 1.75rem 0;
+  padding-left: 1rem;
+  border-left: 3px solid rgba(17, 17, 19, 0.18);
+  opacity: 0.9;
+}
+
+.tap-article p:first-of-type {
+  font-size: 1.15rem;
 }
