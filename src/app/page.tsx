@@ -399,7 +399,7 @@ export default async function HomePage() {
           </p>
 
           <Link
-            href="/essays/let-s-start-in-the-very-middle"
+            href="/essays/the-view-from-middle"
             className="text-xs tracking-[0.2em] uppercase opacity-60 hover:opacity-90"
           >
             Read the manifesto →
