@@ -1,18 +1,21 @@
 import { NextResponse } from "next/server"
-
-// TODO: import and call your real automation function here
-// import { runSignalsIngestion } from "@/lib/signals/runSignalsIngestion"
+import { isValidSignature } from "@sanity/webhook"
 
 export async function POST(req: Request) {
-  const secret = req.headers.get("x-tap-secret") || ""
-  const expected = process.env.TAP_SIGNALS_WEBHOOK_SECRET || ""
+  const secret = process.env.TAP_SIGNALS_WEBHOOK_SECRET!
+  const signature = req.headers.get("sanity-signature") || ""
+  const body = await req.text()
 
-  if (!expected || secret !== expected) {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 })
+  const valid = isValidSignature(body, signature, secret)
+
+  if (!valid) {
+    return NextResponse.json({ ok: false, error: "Invalid signature" }, { status: 401 })
   }
 
   try {
+    // 🔥 Call your real signals automation here
     // await runSignalsIngestion()
+
     return NextResponse.json({ ok: true })
   } catch (e: any) {
     return NextResponse.json(
