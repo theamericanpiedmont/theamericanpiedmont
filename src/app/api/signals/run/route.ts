@@ -1,65 +1,102 @@
-import { NextResponse } from "next/server"
-import { isValidSignature } from "@sanity/webhook"
+// src/app/api/signals/run/route.ts
+import { NextRequest } from "next/server";
 
-export const runtime = "nodejs"
-export const dynamic = "force-dynamic"
+export const runtime = "nodejs"; // safer for rss-parser + crypto libs
+export const dynamic = "force-dynamic"; // avoid caching weirdness
 
-function baseUrl() {
-  const site = (process.env.NEXT_PUBLIC_SITE_URL || "").trim().replace(/\/$/, "")
-  if (site) return site
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
-  return "https://theamericanpiedmont.com"
+function json(data: any, status = 200) {
+  return new Response(JSON.stringify(data, null, 2), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
 }
 
-export async function POST(req: Request) {
-  try {
-    // --- Verify request is really from Sanity ---
-    const secret = (process.env.TAP_SIGNALS_WEBHOOK_SECRET || "").trim()
-    if (!secret) {
-      console.error("Missing TAP_SIGNALS_WEBHOOK_SECRET")
-      return NextResponse.json(
-        { ok: false, error: "Server misconfigured: missing webhook secret" },
-        { status: 500 }
-      )
-    }
+export async function GET() {
+  // Helps debugging in-browser (no more “404 means missing route” confusion)
+  return json({
+    ok: true,
+    route: "/api/signals/run",
+    hasWebhookSecret: Boolean(process.env.TAP_SIGNALS_WEBHOOK_SECRET?.trim()),
+    hasCronSecret: Boolean(process.env.CRON_SECRET?.trim()),
+    hasOpenAI: Boolean(process.env.OPENAI_API_KEY?.trim()),
+    hasSanityWrite: Boolean(process.env.SANITY_API_WRITE_TOKEN?.trim()),
+  });
+}
 
-    const signature = req.headers.get("sanity-signature") || ""
-    const body = await req.text()
+export async function POST(req: NextRequest) {
+  const webhookSecret = (process.env.TAP_SIGNALS_WEBHOOK_SECRET || "").trim();
+  const cronSecret = (process.env.CRON_SECRET || "").trim();
 
-    let valid = false
-    try {
-      valid = await isValidSignature(body, signature, secret)
-    } catch (e: any) {
-      console.error("Signature validation threw:", e?.message || e)
-      return NextResponse.json({ ok: false, error: "Signature validation error" }, { status: 400 })
-    }
+  if (!webhookSecret) return json({ ok: false, error: "Missing TAP_SIGNALS_WEBHOOK_SECRET" }, 500);
+  if (!cronSecret) return json({ ok: false, error: "Missing CRON_SECRET" }, 500);
 
-    if (!valid) {
-      return NextResponse.json({ ok: false, error: "Invalid signature" }, { status: 401 })
-    }
-
-    // --- Call ingestion route ---
-    const cron = (process.env.CRON_SECRET || "").trim()
-    if (!cron) {
-      console.error("Missing CRON_SECRET")
-      return NextResponse.json({ ok: false, error: "Missing CRON_SECRET" }, { status: 500 })
-    }
-
-    const url = new URL("/api/cron/marginalia", baseUrl())
-    url.searchParams.set("key", cron)
-    url.searchParams.set("stage", "write")
-    url.searchParams.set("debug", "1")
-
-    const resp = await fetch(url.toString(), { cache: "no-store" })
-    const text = await resp.text()
-
-    // Pass through response (handy for debugging in Vercel logs)
-    return new NextResponse(text, {
-      status: resp.status,
-      headers: { "content-type": resp.headers.get("content-type") || "application/json" },
-    })
-  } catch (e: any) {
-    console.error("Unhandled error in /api/signals/run:", e?.message || e, e?.stack)
-    return NextResponse.json({ ok: false, error: e?.message || "Unhandled error" }, { status: 500 })
+  // --- AUTH (simple + robust) ---
+  // Configure your Sanity button/webhook to send: x-tap-secret: <TAP_SIGNALS_WEBHOOK_SECRET>
+  const provided = (req.headers.get("x-tap-secret") || "").trim();
+  if (provided !== webhookSecret) {
+    return json({ ok: false, error: "Unauthorized (bad x-tap-secret)" }, 401);
   }
+
+  // Optional: accept a JSON body if you want to pass flags later
+  // (but don’t require it; Sanity can send empty body)
+  let body: any = null;
+  try {
+    body = await req.json();
+  } catch {
+    body = null;
+  }
+
+  // --- TRIGGER INGESTION ---
+  // Call the real ingestion route from the server (so CRON_SECRET stays hidden).
+  const origin = req.nextUrl.origin;
+
+  // You can tweak these defaults:
+  const stage = body?.stage || "write"; // write creates docs
+  const debug = body?.debug ?? 1;
+  const dryRun = body?.dryRun ?? 0;
+
+  const url =
+    `${origin}/api/cron/marginalia` +
+    `?key=${encodeURIComponent(cronSecret)}` +
+    `&stage=${encodeURIComponent(stage)}` +
+    `&debug=${encodeURIComponent(String(debug))}` +
+    `&dryRun=${encodeURIComponent(String(dryRun))}`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { "accept": "application/json" },
+    // Important: don’t cache internal fetch
+    cache: "no-store",
+  });
+
+  const text = await res.text();
+
+  // If cron route returns JSON, pass it through.
+  // If it returns plain text, still return it to you for visibility.
+  let payload: any = text;
+  try {
+    payload = JSON.parse(text);
+  } catch {}
+
+  if (!res.ok) {
+    return json(
+      {
+        ok: false,
+        error: "Ingestion failed",
+        status: res.status,
+        ingestionUrl: url.replace(cronSecret, "***"), // don’t leak secret in logs
+        payload,
+      },
+      500
+    );
+  }
+
+  return json({
+    ok: true,
+    triggered: true,
+    stage,
+    dryRun,
+    ingestionUrl: url.replace(cronSecret, "***"),
+    result: payload,
+  });
 }
