@@ -3,17 +3,29 @@ import { NextResponse } from "next/server"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-export async function GET() {
-  return NextResponse.json({
-    ok: true,
-    route: "/api/signals/run",
-    hasWebhookSecret: Boolean(process.env.TAP_SIGNALS_WEBHOOK_SECRET),
-    hasCronSecret: Boolean(process.env.CRON_SECRET),
-    hasOpenAI: Boolean(process.env.OPENAI_API_KEY),
-    hasSanityWrite: Boolean(process.env.SANITY_API_WRITE_TOKEN),
-  })
+function baseUrl() {
+  const site = (process.env.NEXT_PUBLIC_SITE_URL || "").trim().replace(/\/$/, "")
+  if (site) return site
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  return "https://theamericanpiedmont.com"
 }
 
 export async function POST() {
-  return NextResponse.json({ ok: true, msg: "POST reached /api/signals/run" })
+  const cron = (process.env.CRON_SECRET || "").trim()
+  if (!cron) {
+    return NextResponse.json({ ok: false, error: "Missing CRON_SECRET" }, { status: 500 })
+  }
+
+  const url = new URL("/api/cron/marginalia", baseUrl())
+  url.searchParams.set("key", cron)
+  url.searchParams.set("stage", "write")
+  url.searchParams.set("debug", "1")
+
+  const resp = await fetch(url.toString(), { cache: "no-store" })
+  const text = await resp.text()
+
+  return new NextResponse(text, {
+    status: resp.status,
+    headers: { "content-type": resp.headers.get("content-type") || "application/json" },
+  })
 }
