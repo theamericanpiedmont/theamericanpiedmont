@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
     let valid = false
     try {
-      valid = isValidSignature(body, signature, secret)
+      valid = await isValidSignature(body, signature, secret)
     } catch (e: any) {
       console.error("Signature validation threw:", e?.message || e)
       return NextResponse.json({ ok: false, error: "Signature validation error" }, { status: 400 })
