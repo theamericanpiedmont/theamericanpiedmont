@@ -182,6 +182,13 @@ S.listItem()
     S.component(AutomationPane).title("Automation")
   ),
 
+S.listItem()
+  .title("Signal Runs")
+  .child(
+    S.documentTypeList("signalRun")
+      .title("Signal Runs")
+  ),
+
 S.divider(),
 
       // =========================
