@@ -8,6 +8,7 @@ import {fieldNoteType} from './fieldNoteType'
 import {marginaliaType} from './marginaliaType'
 import {marginaliaSignalType} from './marginaliaSignalType'
 import {artifactType} from './artifactType'
+import { signalRunType } from "./signalRun"
 
 export const schema: {types: SchemaTypeDefinition[]} = {
   types: [
@@ -15,6 +16,7 @@ export const schema: {types: SchemaTypeDefinition[]} = {
     sectionType,
     blockContentType,
     essayType,
+    signalRunType,
     fieldNoteType,
     artifactType,
     marginaliaType,

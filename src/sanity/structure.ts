@@ -1,5 +1,6 @@
 // src/sanity/structure.ts
 import type { StructureResolver } from "sanity/structure"
+import AutomationPane from "@/sanity/components/AutomationPane"
 
 export const structure: StructureResolver = (S) =>
   S.list()
@@ -174,6 +175,14 @@ export const structure: StructureResolver = (S) =>
         ),
 
       S.divider(),
+
+S.listItem()
+  .title("Automation")
+  .child(
+    S.component(AutomationPane).title("Automation")
+  ),
+
+S.divider(),
 
       // =========================
       // TAXONOMY
