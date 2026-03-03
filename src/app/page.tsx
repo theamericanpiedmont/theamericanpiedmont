@@ -407,7 +407,7 @@ export default async function HomePage() {
   </div>
 
   {/* Red/orange masthead bar */}
-  <div className="mt-5 h-[10px] w-full bg-[#D64B2A]" />
+  <div className="mt-5 h-[30px] w-full bg-[#D64B2A]" />
 </header>
 
       {/* Magazine grid */}
