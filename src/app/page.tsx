@@ -366,7 +366,7 @@ export default async function HomePage() {
   const featuredNote = notes[0] ?? null
 
   // Left rail: 12 signals
-  const signals = data.publishedSignals?.slice(0, 12) ?? []
+  const signals = data.publishedSignals?.slice(0, 13) ?? []
 
   // Decide which story is newest (top of center well)
   const essayTime = toTime(lead?.publishedAt)
@@ -392,20 +392,23 @@ export default async function HomePage() {
   return (
     <main className="mx-auto max-w-[1440px] px-10 pb-16">
       {/* Masthead / edition header */}
-      <header className="pt-8 pb-6 border-b border-black/10">
-        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-          <p className="text-xs font-semibold tracking-[0.2em] uppercase opacity-70">
-            Edition {editionDate}
-          </p>
+<header className="pt-8 pb-5">
+  <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+    <p className="text-xs font-semibold tracking-[0.2em] uppercase opacity-70">
+      Edition {editionDate}
+    </p>
 
-          <Link
-            href="/essays/the-view-from-the-middle"
-            className="text-xs tracking-[0.2em] uppercase opacity-60 hover:opacity-90"
-          >
-            Read the manifesto →
-          </Link>
-        </div>
-      </header>
+    <Link
+      href="/essays/the-view-from-the-middle"
+      className="text-xs tracking-[0.2em] uppercase opacity-60 hover:opacity-90"
+    >
+      Read the manifesto →
+    </Link>
+  </div>
+
+  {/* Red/orange masthead bar */}
+  <div className="mt-5 h-[10px] w-full bg-[#D64B2A]" />
+</header>
 
       {/* Magazine grid */}
       <section className="mt-8 border-b border-black/10 pb-10">
