@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 import Link from "next/link"
 import imageUrlBuilder from "@sanity/image-url"
 import { client } from "@/sanity/lib/client"
@@ -393,6 +396,9 @@ export default async function HomePage() {
     <main className="mx-auto max-w-[1440px] px-10 pb-16">
       {/* Masthead / edition header */}
 <header className="pt-8 pb-5">
+  {/* Red/orange masthead bar (now above Edition row) */}
+  <div className="mb-5 h-[30px] w-full bg-[#D64B2A]" />
+
   <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
     <p className="text-xs font-semibold tracking-[0.2em] uppercase opacity-70">
       Edition {editionDate}
@@ -405,9 +411,6 @@ export default async function HomePage() {
       Read the manifesto →
     </Link>
   </div>
-
-  {/* Red/orange masthead bar */}
-  <div className="mt-5 h-[30px] w-full bg-[#D64B2A]" />
 </header>
 
       {/* Magazine grid */}

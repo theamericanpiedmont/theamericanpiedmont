@@ -34,7 +34,7 @@ export const homeQuery = /* groq */ `
 
   "publishedSignals": *[
   _type == "marginaliaSignal" &&
-  status in ["published","approved"] &&
+  (!defined(status) || status in ["published","approved"]) &&
   defined(coalesce(publishedAt, _updatedAt)) &&
   defined(headline) &&
   defined(url) &&
@@ -49,8 +49,6 @@ export const homeQuery = /* groq */ `
   civicTag,
   score,
   publishedAt,
-
-  // ✅ this is the one you enter manually in Sanity:
   sourceUrl
 },
 
