@@ -7,6 +7,8 @@ import { client } from "@/sanity/lib/client"
 import { formatLongDate, labelize } from "../../../lib/format"
 export const revalidate = 60
 
+
+
 const builder = imageUrlBuilder(client)
 const urlFor = (source: any) => builder.image(source)
 

@@ -55,3 +55,13 @@ body {
 .tap-article p:first-of-type {
   font-size: 1.15rem;
 }
+
+a {
+  color: #1d4ed8;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
