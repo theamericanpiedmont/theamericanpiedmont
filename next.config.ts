@@ -1,12 +1,7 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from "next"
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  experimental: {
-    turbo: false,
-  },
+const nextConfig: NextConfig = {
+  // Leave empty unless you have specific settings you need.
 }
 
-module.exports = nextConfig
-
-export default nextConfig;
+export default nextConfig
