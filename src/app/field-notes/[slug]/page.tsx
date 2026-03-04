@@ -1,8 +1,10 @@
 import Link from "next/link"
 import imageUrlBuilder from "@sanity/image-url"
 import { PortableText } from "@portabletext/react"
+import type { PortableTextComponents } from "@portabletext/react"
 import { notFound } from "next/navigation"
 import { client } from "@/sanity/lib/client"
+import { formatLongDate, labelize } from "@/lib/format"
 
 export const revalidate = 60
 
@@ -69,11 +71,6 @@ const fieldNoteBySlugQuery = `
 }
 `
 
-function labelize(value?: string) {
-  if (!value) return ""
-  return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-}
-
 function isParagraphBlock(block: any) {
   return (
     block &&
@@ -114,7 +111,7 @@ function insertPullQuote(body: any[] | undefined, pullQuote?: string, attributio
   return next
 }
 
-const portableTextComponents = {
+const portableTextComponents: PortableTextComponents = {
   types: {
     tapPullQuote: ({ value }: any) => {
       const quote = value?.quote
@@ -136,6 +133,61 @@ const portableTextComponents = {
       )
     },
   },
+
+  // ✅ Ensure PortableText links render as <a> and let CSS handle underline-only styling
+  marks: {
+    link: ({ value, children }) => {
+      const href = value?.href as string | undefined
+      const isExternal = href ? /^https?:\/\//i.test(href) : false
+
+      return (
+        <a
+          href={href}
+          target={isExternal ? "_blank" : undefined}
+          rel={isExternal ? "noopener noreferrer" : undefined}
+        >
+          {children}
+        </a>
+      )
+    },
+  },
+}
+
+function canonicalFor(slug: string) {
+  const base = (process.env.NEXT_PUBLIC_SITE_URL || "https://theamericanpiedmont.com").replace(/\/$/, "")
+  return `${base}/field-notes/${slug}`
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug?: string }
+}) {
+  const rawSlug = params?.slug ?? ""
+  const slug = rawSlug ? decodeURIComponent(rawSlug) : ""
+  if (!slug) return {}
+
+  const note = await client.fetch<{
+    title?: string
+    lede?: string
+  }>(fieldNoteBySlugQuery, { slug })
+
+  if (!note?.title) return {}
+
+  const title = `${note.title} — The American Piedmont`
+  const description = note.lede || "A field note from The American Piedmont."
+
+  return {
+    title,
+    description,
+    alternates: { canonical: canonicalFor(slug) },
+    openGraph: {
+      title,
+      description,
+      type: "article",
+      url: canonicalFor(slug),
+    },
+  }
 }
 
 export default async function FieldNotePage(props: {
@@ -170,11 +222,7 @@ export default async function FieldNotePage(props: {
 
         {note.publishedAt ? (
           <p className="mt-2 text-xs tracking-[0.18em] uppercase opacity-60">
-            {new Date(note.publishedAt).toLocaleDateString(undefined, {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
+            {formatLongDate(note.publishedAt)}
           </p>
         ) : null}
 
@@ -196,7 +244,7 @@ export default async function FieldNotePage(props: {
 
       {bodyWithPullQuote?.length ? (
         <article className="tap-article">
-          <PortableText value={bodyWithPullQuote} components={portableTextComponents as any} />
+          <PortableText value={bodyWithPullQuote} components={portableTextComponents} />
         </article>
       ) : (
         <section className="rounded-2xl border border-black/10 bg-white/60 shadow-sm p-6">

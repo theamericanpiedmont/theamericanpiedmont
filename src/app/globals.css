@@ -56,12 +56,12 @@ body {
   font-size: 1.15rem;
 }
 
-a {
-  color: #1d4ed8;
+/* Links inside essays / field notes */
+.tap-article a {
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: 3px;
 }
 
-a:hover {
+.tap-article a:hover {
   text-decoration-thickness: 2px;
 }

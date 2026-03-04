@@ -2,12 +2,11 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { PortableText } from "@portabletext/react"
+import type { PortableTextComponents } from "@portabletext/react"
 import imageUrlBuilder from "@sanity/image-url"
 import { client } from "@/sanity/lib/client"
 import { formatLongDate, labelize } from "../../../lib/format"
 export const revalidate = 60
-
-
 
 const builder = imageUrlBuilder(client)
 const urlFor = (source: any) => builder.image(source)
@@ -97,7 +96,26 @@ export async function generateMetadata({
   }
 }
 
+// ✅ Link styling only for links inside article PortableText
+const portableTextComponents: PortableTextComponents = {
+  marks: {
+    link: ({ value, children }) => {
+      const href = value?.href as string | undefined
+      const isExternal = href ? /^https?:\/\//i.test(href) : false
 
+      return (
+        <a
+          href={href}
+          className="underline underline-offset-2 hover:decoration-2"
+          target={isExternal ? "_blank" : undefined}
+          rel={isExternal ? "noopener noreferrer" : undefined}
+        >
+          {children}
+        </a>
+      )
+    },
+  },
+}
 
 export default async function EssayPage({
   params,
@@ -111,6 +129,7 @@ export default async function EssayPage({
   const essay = await client.fetch<Essay>(essayBySlugQuery, { slug })
   if (!essay?.title) notFound()
   if (!slug) notFound()
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
       <header className="mb-8">
@@ -146,8 +165,9 @@ export default async function EssayPage({
         />
       ) : null}
 
+      {/* Only links inside this article body will get the “webby” underline style */}
       <article className="tap-article">
-        <PortableText value={essay.body} />
+        <PortableText value={essay.body} components={portableTextComponents} />
       </article>
 
       {essay.artifacts?.length ? (
@@ -214,7 +234,9 @@ export default async function EssayPage({
         <span role="img" aria-label="Mail">✉️</span>{" "}
         Respond to this essay at{" "}
         <a
-          href={`mailto:rick@theamericanpiedmont.com?subject=${encodeURIComponent(`Response to ${essay.title}`)}`}
+          href={`mailto:rick@theamericanpiedmont.com?subject=${encodeURIComponent(
+            `Response to ${essay.title}`
+          )}`}
           className="underline underline-offset-4"
         >
           rick@theamericanpiedmont.com
