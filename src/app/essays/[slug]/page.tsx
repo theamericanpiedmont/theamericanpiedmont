@@ -170,37 +170,51 @@ const portableTextComponents: PortableTextComponents = {
     },
 
     storyImage: ({ value }) => {
-      const align = value?.align || "center"
-      const img = value?.image
-      if (!img) return null
+  const align = value?.align || "center"
 
-      const wrapperClass =
-        align === "center"
-          ? "my-12 relative left-1/2 -translate-x-1/2 w-[110vw] max-w-5xl"
-          : "my-10"
+  // ✅ Support common schema variants:
+  // - value.image (your intended)
+  // - value.photo (common alt)
+  // - value.asset (rare)
+  // - value.image.asset (Sanity image object already)
+  const img =
+    value?.image ||
+    value?.photo ||
+    value?.img ||
+    value?.asset ||
+    (value?.image?.asset ? value.image : null)
 
-      const imgClass =
-        align === "left" ? "mr-auto" : align === "right" ? "ml-auto" : "mx-auto"
+  if (!img) return null
 
-      return (
-        <figure className={wrapperClass}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={urlFor(img).width(1800).quality(80).url()}
-            alt={value?.alt || value?.caption || ""}
-            className={`w-full rounded-xl border border-black/10 ${imgClass}`}
-            loading="lazy"
-          />
-          {value?.caption || value?.credit ? (
-            <figcaption className="mt-3 text-sm opacity-70">
-              {value?.caption ? <span>{value.caption}</span> : null}
-              {value?.caption && value?.credit ? <span> · </span> : null}
-              {value?.credit ? <span>{value.credit}</span> : null}
-            </figcaption>
-          ) : null}
-        </figure>
-      )
-    },
+  // Align: center goes wide; left/right stays in column
+  const wrapperClass =
+    align === "center"
+      ? "my-12 relative left-1/2 -translate-x-1/2 w-[110vw] max-w-5xl"
+      : "my-10"
+
+  const imgClass = align === "left" ? "mr-auto" : align === "right" ? "ml-auto" : "mx-auto"
+
+  const src = urlFor(img).width(2200).quality(85).auto("format").url()
+
+  return (
+    <figure className={wrapperClass}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={value?.alt || value?.caption || ""}
+        className={`w-full rounded-xl border border-black/10 ${imgClass}`}
+        loading="lazy"
+      />
+      {value?.caption || value?.credit ? (
+        <figcaption className="mt-3 text-sm opacity-70">
+          {value?.caption ? <span>{value.caption}</span> : null}
+          {value?.caption && value?.credit ? <span> · </span> : null}
+          {value?.credit ? <span>{value.credit}</span> : null}
+        </figcaption>
+      ) : null}
+    </figure>
+  )
+},
 
     gallery: ({ value }) => {
       const images = Array.isArray(value?.images) ? value.images : []
