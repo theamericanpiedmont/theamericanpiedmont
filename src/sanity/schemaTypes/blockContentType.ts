@@ -74,5 +74,10 @@ export const blockContentType = defineType({
     defineArrayMember({
       type: "gallery",
     }),
+    // ✅ NEW: Section break (A big cenetered tilda)
+    defineArrayMember({
+      type: "sectionBreak",
+    }),
+
   ],
 })

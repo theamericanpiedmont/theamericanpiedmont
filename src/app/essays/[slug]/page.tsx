@@ -105,6 +105,8 @@ const portableTextComponents: PortableTextComponents = {
     },
   },
 
+
+  
   block: {
     h2: ({ children }) => (
       <h2 className="mt-10 scroll-mt-24 font-serif text-2xl leading-snug">{children}</h2>
@@ -142,6 +144,14 @@ const portableTextComponents: PortableTextComponents = {
         </figure>
       )
     },
+
+    sectionBreak: () => {
+  return (
+    <div className="my-12 text-center text-3xl opacity-70 tracking-[0.3em]">
+      ~
+    </div>
+  )
+},
 
     sidenote: ({ value }) => {
       if (!value?.text) return null
