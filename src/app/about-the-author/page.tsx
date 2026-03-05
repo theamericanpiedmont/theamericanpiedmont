@@ -87,6 +87,11 @@ Reporting on civic memory.</p>
             <p>
               His writing has appeared in <em>USA Today</em>, <em>TechCrunch</em>, <em>The Courier-Journal</em>, and <em>Washington Jewish Week</em>.
             </p>
+
+            <p>
+              Em dashes do not indicate robot prose.
+            </p>
+
           </div>
 {/* Subtle Award Logos */}
   <div className="mt-10">

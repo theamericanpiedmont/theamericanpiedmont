@@ -6,6 +6,9 @@ import imageUrlBuilder from "@sanity/image-url"
 import { client } from "@/sanity/lib/client"
 import { homeQuery } from "@/sanity/lib/queries"
 
+// ✅ NEW: hotspot-aware crop helper
+import { imageWithHotspot } from "@/lib/images"
+
 const builder = imageUrlBuilder(client)
 const urlFor = (source: any) => builder.image(source)
 
@@ -136,9 +139,8 @@ function pickTwoUniqueDeterministic<T extends { _id: string }>(
 }
 
 function SpotlightCard({ a }: { a: ArtifactSpotlightItem }) {
-  const imgUrl = a.heroImage
-    ? urlFor(a.heroImage).width(900).height(520).fit("crop").quality(80).url()
-    : null
+  // ✅ Hotspot-aware crop (4:3-ish card)
+  const imgUrl = a.heroImage ? imageWithHotspot(a.heroImage, 900, 520) : null
 
   return (
     <section className="rounded-2xl border border-black/10 bg-white/60 shadow-sm overflow-hidden">
@@ -189,9 +191,7 @@ function SpotlightCard({ a }: { a: ArtifactSpotlightItem }) {
               {a.title}
             </h4>
 
-            {a.summary ? (
-              <p className="mt-2 text-sm opacity-80 line-clamp-3">{a.summary}</p>
-            ) : null}
+            {a.summary ? <p className="mt-2 text-sm opacity-80 line-clamp-3">{a.summary}</p> : null}
           </Link>
         </div>
       </div>
@@ -229,6 +229,9 @@ function EssayCard({
     ? "rounded-2xl border border-black/15 bg-white shadow-md overflow-hidden"
     : "rounded-2xl border border-black/10 bg-white/60 shadow-sm overflow-hidden"
 
+  // ✅ Hotspot-aware crop for lead hero (16:9)
+  const leadImgUrl = lead.heroImage ? imageWithHotspot(lead.heroImage, 1800, 900) : null
+
   return (
     <article className={cardClass}>
       <div className="p-6 md:p-8">
@@ -248,9 +251,7 @@ function EssayCard({
           </Link>
         </h2>
 
-        {leadExcerpt ? (
-          <p className="mt-4 text-base md:text-lg leading-relaxed opacity-80">{leadExcerpt}</p>
-        ) : null}
+        {leadExcerpt ? <p className="mt-4 text-base md:text-lg leading-relaxed opacity-80">{leadExcerpt}</p> : null}
 
         <div className="mt-6">
           <Link
@@ -262,11 +263,11 @@ function EssayCard({
         </div>
       </div>
 
-      {lead.heroImage ? (
+      {leadImgUrl ? (
         <Link href={essayHref} aria-label={lead.title} className="block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={urlFor(lead.heroImage).width(1800).height(900).fit("crop").quality(80).url()}
+            src={leadImgUrl}
             alt=""
             className={`w-full border-t border-black/10 object-cover ${imageHeight}`}
           />
@@ -295,6 +296,9 @@ function FieldNoteCard({
   const cardClass = featured
     ? "rounded-2xl border border-black/15 bg-white shadow-md overflow-hidden"
     : "rounded-2xl border border-black/10 bg-white/60 shadow-sm overflow-hidden"
+
+  // ✅ Hotspot-aware crop for field note hero (16:9)
+  const noteImgUrl = featuredImage ? imageWithHotspot(featuredImage, 1800, 900) : null
 
   return (
     <article className={cardClass}>
@@ -331,11 +335,11 @@ function FieldNoteCard({
         </div>
       </div>
 
-      {featuredImage ? (
+      {noteImgUrl ? (
         <Link href={noteHref} aria-label={note.title} className="block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={urlFor(featuredImage).width(1800).height(900).fit("crop").quality(80).url()}
+            src={noteImgUrl}
             alt=""
             className={`w-full border-t border-black/10 object-cover ${imageHeight}`}
           />
@@ -350,7 +354,6 @@ export default async function HomePage() {
 
   const lead = data.leadEssay
 
-  // Curated edition: tighter excerpts + fixed image height to control vertical rhythm
   const LEAD_EXCERPT_MAX = 1000
   const NOTE_LEDE_MAX = 300
 
@@ -368,26 +371,18 @@ export default async function HomePage() {
   const notes = data.latestFieldNotes ?? []
   const featuredNote = notes[0] ?? null
 
-  // Left rail: 12 signals
   const signals = data.publishedSignals?.slice(0, 13) ?? []
 
-  // Decide which story is newest (top of center well)
   const essayTime = toTime(lead?.publishedAt)
   const noteTime = toTime(featuredNote?.publishedAt)
   const newestIsFieldNote = noteTime > essayTime
 
-  // ✅ Hydration-safe edition date (server + client will match)
   const editionDate = new Date().toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
   })
 
-  /**
-   * ✅ Keep artifact spotlights, but remove Math.random().
-   * We deterministically pick 2 from the pool based on today's edition date.
-   * (Same two all day; changes tomorrow.)
-   */
   const picked = pickTwoUniqueDeterministic(data.artifactPool, editionDate)
   const a1 = picked[0]
   const a2 = picked[1]
@@ -395,23 +390,22 @@ export default async function HomePage() {
   return (
     <main className="mx-auto max-w-[1440px] px-10 pb-16">
       {/* Masthead / edition header */}
-<header className="pt-8 pb-5">
-  {/* Red/orange masthead bar (now above Edition row) */}
-  <div className="mb-5 h-[30px] w-full bg-[#D64B2A]" />
+      <header className="pt-8 pb-5">
+        <div className="mb-5 h-[30px] w-full bg-[#D64B2A]" />
 
-  <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-    <p className="text-xs font-semibold tracking-[0.2em] uppercase opacity-70">
-      Edition {editionDate}
-    </p>
+        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <p className="text-xs font-semibold tracking-[0.2em] uppercase opacity-70">
+            Edition {editionDate}
+          </p>
 
-    <Link
-      href="/essays/the-view-from-the-middle"
-      className="text-xs tracking-[0.2em] uppercase opacity-60 hover:opacity-90"
-    >
-      Read the manifesto →
-    </Link>
-  </div>
-</header>
+          <Link
+            href="/essays/the-view-from-the-middle"
+            className="text-xs tracking-[0.2em] uppercase opacity-60 hover:opacity-90"
+          >
+            Read the manifesto →
+          </Link>
+        </div>
+      </header>
 
       {/* Magazine grid */}
       <section className="mt-8 border-b border-black/10 pb-10">
@@ -499,33 +493,13 @@ export default async function HomePage() {
           <section className="lg:col-span-6 order-1 lg:order-2 flex flex-col space-y-8">
             {newestIsFieldNote ? (
               <>
-                <FieldNoteCard
-                  note={featuredNote}
-                  featured
-                  ledeMax={NOTE_LEDE_MAX}
-                  imageHeight="h-80 md:h-128"
-                />
-                <EssayCard
-                  lead={lead}
-                  leadKicker={leadKicker}
-                  leadExcerpt={leadExcerpt}
-                  imageHeight="h-40 md:h-63"
-                />
+                <FieldNoteCard note={featuredNote} featured ledeMax={NOTE_LEDE_MAX} imageHeight="h-80 md:h-128" />
+                <EssayCard lead={lead} leadKicker={leadKicker} leadExcerpt={leadExcerpt} imageHeight="h-40 md:h-63" />
               </>
             ) : (
               <>
-                <EssayCard
-                  lead={lead}
-                  leadKicker={leadKicker}
-                  leadExcerpt={leadExcerpt}
-                  featured
-                  imageHeight="h-96 md:h-128"
-                />
-                <FieldNoteCard
-                  note={featuredNote}
-                  ledeMax={NOTE_LEDE_MAX}
-                  imageHeight="h-40 md:h-63"
-                />
+                <EssayCard lead={lead} leadKicker={leadKicker} leadExcerpt={leadExcerpt} featured imageHeight="h-96 md:h-128" />
+                <FieldNoteCard note={featuredNote} ledeMax={NOTE_LEDE_MAX} imageHeight="h-40 md:h-63" />
               </>
             )}
           </section>
