@@ -171,44 +171,32 @@ const portableTextComponents: PortableTextComponents = {
 
     storyImage: ({ value }) => {
   const align = value?.align || "center"
-
-  // ✅ Support common schema variants:
-  // - value.image (your intended)
-  // - value.photo (common alt)
-  // - value.asset (rare)
-  // - value.image.asset (Sanity image object already)
-  const img =
-    value?.image ||
-    value?.photo ||
-    value?.img ||
-    value?.asset ||
-    (value?.image?.asset ? value.image : null)
-
+  const img = value?.image
   if (!img) return null
 
-  // Align: center goes wide; left/right stays in column
-  const wrapperClass =
-    align === "center"
-      ? "my-12 relative left-1/2 -translate-x-1/2 w-[110vw] max-w-5xl"
-      : "my-10"
-
-  const imgClass = align === "left" ? "mr-auto" : align === "right" ? "ml-auto" : "mx-auto"
-
-  const src = urlFor(img).width(2200).quality(85).auto("format").url()
-
-console.log("storyImage value", value)
+  // ✅ NEW: narrow, smaller-than-copy default
+  // - copy column is 760px max
+  // - images default to 560px max (tweak to taste)
+  const baseWrap = "my-10 mx-auto w-full max-w-[560px]"
+  const wrapClass =
+    align === "left"
+      ? "my-10 mr-auto w-full max-w-[560px]"
+      : align === "right"
+        ? "my-10 ml-auto w-full max-w-[560px]"
+        : baseWrap
 
   return (
-    <figure className={wrapperClass}>
+    <figure className={wrapClass}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={src}
+        src={urlFor(img).width(1600).quality(85).auto("format").url()}
         alt={value?.alt || value?.caption || ""}
-        className={`w-full rounded-xl border border-black/10 ${imgClass}`}
+        className="w-full rounded-xl border border-black/10 object-cover"
         loading="lazy"
       />
+
       {value?.caption || value?.credit ? (
-        <figcaption className="mt-3 text-sm opacity-70">
+        <figcaption className="mt-3 text-xs opacity-70">
           {value?.caption ? <span>{value.caption}</span> : null}
           {value?.caption && value?.credit ? <span> · </span> : null}
           {value?.credit ? <span>{value.credit}</span> : null}
@@ -222,19 +210,18 @@ image: ({ value }) => {
   const img = value
   if (!img) return null
 
-  const src = urlFor(img).width(2200).quality(85).auto("format").url()
-
   return (
-    <figure className="my-12 relative left-1/2 -translate-x-1/2 w-[110vw] max-w-5xl">
+    <figure className="my-10 mx-auto w-full max-w-[560px]">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={src}
+        src={urlFor(img).width(1600).quality(85).auto("format").url()}
         alt={value?.alt || ""}
         className="w-full rounded-xl border border-black/10 object-cover"
         loading="lazy"
       />
+
       {value?.alt ? (
-        <figcaption className="mt-3 text-sm opacity-70">{value.alt}</figcaption>
+        <figcaption className="mt-3 text-xs opacity-70">{value.alt}</figcaption>
       ) : null}
     </figure>
   )
