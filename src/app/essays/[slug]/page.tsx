@@ -256,7 +256,7 @@ const portableTextComponents: PortableTextComponents = {
   return (
     <figure className="my-10">
       {/* smaller than text column */}
-      <div className="mx-auto w-full max-w-[520px]">
+      <div className="mx-auto w-full max-w-[420px]">
         {/* Header row (no white card) */}
         <div className="mb-2 flex items-baseline justify-between gap-4">
           <p className="text-[11px] font-semibold tracking-[0.2em] uppercase opacity-65">
