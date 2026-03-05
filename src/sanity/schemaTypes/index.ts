@@ -5,15 +5,16 @@ import { type SchemaTypeDefinition } from "sanity"
 import { authorType } from "./authorType"
 import { sectionType } from "./sectionType"
 import { blockContentType } from "./blockContentType"
+import { sectionBreak } from "./sectionBreak"
+
 import { essayType } from "./essayType"
 import { fieldNoteType } from "./fieldNoteType"
 import { marginaliaType } from "./marginaliaType"
 import { marginaliaSignalType } from "./marginaliaSignalType"
 import { artifactType } from "./artifactType"
 import { signalRunType } from "./signalRun"
-import { sectionBreak } from "./sectionBreak"
 
-// New types (enable one at a time while debugging)
+// New types
 import { pullQuoteType } from "./pullQuoteType"
 import { artifactEmbedType } from "./artifactEmbedType"
 import { storyImageType } from "./storyImageType"
@@ -23,29 +24,33 @@ import { sidenoteType } from "./sidenoteType"
 const typePairs: Array<{ key: string; val: SchemaTypeDefinition | undefined }> = [
   { key: "authorType", val: authorType },
   { key: "sectionType", val: sectionType },
+
   { key: "blockContentType", val: blockContentType },
+
+  // Register sectionBreak early since blockContent uses it
+  { key: "sectionBreak", val: sectionBreak },
+
   { key: "essayType", val: essayType },
   { key: "signalRunType", val: signalRunType },
   { key: "fieldNoteType", val: fieldNoteType },
   { key: "artifactType", val: artifactType },
   { key: "marginaliaType", val: marginaliaType },
   { key: "marginaliaSignalType", val: marginaliaSignalType },
+
   { key: "sidenoteType", val: sidenoteType },
   { key: "pullQuoteType", val: pullQuoteType },
   { key: "artifactEmbedType", val: artifactEmbedType },
   { key: "storyImageType", val: storyImageType },
   { key: "galleryType", val: galleryType },
-  { key: "sectionBreak", val: sectionBreak },
 ]
 
-// ---- TEMP DEBUG: make schema errors readable (remove after fix) ----
+// ---- TEMP DEBUG: make schema errors readable ----
 const schemaNames = typePairs.map((t) => ({
   key: t.key,
   name: (t.val as any)?.name,
   type: (t.val as any)?.type,
 }))
 
-// If any import is undefined or missing "name", throw a readable error
 const missing = schemaNames.filter((x) => !x.name)
 if (missing.length) {
   throw new Error(
@@ -54,7 +59,6 @@ if (missing.length) {
   )
 }
 
-// Detect duplicate schema type names (Sanity requires all names unique)
 const counts = schemaNames.reduce((acc: Record<string, number>, x) => {
   acc[x.name] = (acc[x.name] || 0) + 1
   return acc

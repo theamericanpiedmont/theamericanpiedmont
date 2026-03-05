@@ -7,9 +7,7 @@ export const sectionBreak = defineType({
   fields: [],
   preview: {
     prepare() {
-      return {
-        title: "Section Break (~)",
-      }
+      return { title: "Section Break (~)" }
     },
   },
 })
