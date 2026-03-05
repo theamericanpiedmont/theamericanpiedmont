@@ -55,7 +55,7 @@ export const blockContentType = defineType({
 
     // ✅ NEW: Pull Quote block
     defineArrayMember({
-      type: "pullQuote",
+      type: "tapPullQuote",
     }),
 
     // ✅ NEW: Artifact Embed block
