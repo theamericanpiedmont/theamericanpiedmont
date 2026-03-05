@@ -11,6 +11,7 @@ import { marginaliaType } from "./marginaliaType"
 import { marginaliaSignalType } from "./marginaliaSignalType"
 import { artifactType } from "./artifactType"
 import { signalRunType } from "./signalRun"
+import { sectionBreak } from "./sectionBreak"
 
 // New types (enable one at a time while debugging)
 import { pullQuoteType } from "./pullQuoteType"
@@ -34,6 +35,7 @@ const typePairs: Array<{ key: string; val: SchemaTypeDefinition | undefined }> =
   { key: "artifactEmbedType", val: artifactEmbedType },
   { key: "storyImageType", val: storyImageType },
   { key: "galleryType", val: galleryType },
+  { key: "sectionBreak", val: sectionBreak },
 ]
 
 // ---- TEMP DEBUG: make schema errors readable (remove after fix) ----
