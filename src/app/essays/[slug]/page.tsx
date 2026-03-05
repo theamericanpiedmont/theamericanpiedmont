@@ -117,6 +117,13 @@ const portableTextComponents: PortableTextComponents = {
         {children}
       </blockquote>
     ),
+
+    // NEW: indented narrative quote
+  quoteIndent: ({ children }) => (
+  <p className="my-6 ml-8 max-w-[520px] border-l border-black/10 pl-5 text-[18px] leading-relaxed opacity-85">
+    {children}
+  </p>
+),
   },
 
   types: {
