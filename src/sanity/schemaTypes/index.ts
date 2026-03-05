@@ -54,6 +54,31 @@ for (const t of typePairs) {
   names.set(name, t.key)
 }
 
+// ---- TEMP DEBUG (remove after fix) ----
+const schemaNames = typePairs.map((t) => ({
+  key: t.key,
+  name: (t.val as any)?.name,
+  type: (t.val as any)?.type,
+}))
+
+console.log("SANITY_SCHEMA_TYPES:", schemaNames)
+
+const missing = schemaNames.filter((x) => !x.name)
+if (missing.length) {
+  throw new Error("Sanity schema types missing name: " + JSON.stringify(missing))
+}
+
+const counts = schemaNames.reduce((acc: Record<string, number>, x) => {
+  acc[x.name] = (acc[x.name] || 0) + 1
+  return acc
+}, {})
+
+const dupes = Object.entries(counts).filter(([, n]) => n > 1)
+if (dupes.length) {
+  throw new Error("Duplicate Sanity schema type names: " + JSON.stringify(dupes))
+}
+// ---- END TEMP DEBUG ----
+
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: typePairs.map((t) => t.val!) as SchemaTypeDefinition[],
 }
