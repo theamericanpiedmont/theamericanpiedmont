@@ -6,6 +6,7 @@ import type { PortableTextComponents } from "@portabletext/react"
 import imageUrlBuilder from "@sanity/image-url"
 import { client } from "@/sanity/lib/client"
 import { formatLongDate, labelize } from "../../../lib/format"
+
 export const revalidate = 60
 
 const builder = imageUrlBuilder(client)
@@ -61,7 +62,10 @@ const essayBySlugQuery = /* groq */ `
 `
 
 function canonicalFor(slug: string) {
-  const base = (process.env.NEXT_PUBLIC_SITE_URL || "https://theamericanpiedmont.com").replace(/\/$/, "")
+  const base = (process.env.NEXT_PUBLIC_SITE_URL || "https://theamericanpiedmont.com").replace(
+    /\/$/,
+    ""
+  )
   return `${base}/essays/${slug}`
 }
 
@@ -96,7 +100,14 @@ export async function generateMetadata({
   }
 }
 
-// ✅ Link styling only for links inside article PortableText
+/**
+ * PortableText renderers
+ * NOTE:
+ * - Your pull quote type key must match the Sanity type name.
+ *   If your schema type is named "tapPullQuote" (recommended), keep as-is.
+ *   If it is named "pullQuote", change the key below accordingly.
+ * - artifactEmbed currently expects value.artifact to be populated; see note in component.
+ */
 const portableTextComponents: PortableTextComponents = {
   marks: {
     link: ({ value, children }) => {
@@ -118,14 +129,10 @@ const portableTextComponents: PortableTextComponents = {
 
   block: {
     h2: ({ children }) => (
-      <h2 className="mt-10 scroll-mt-24 font-serif text-2xl leading-snug">
-        {children}
-      </h2>
+      <h2 className="mt-10 scroll-mt-24 font-serif text-2xl leading-snug">{children}</h2>
     ),
     h3: ({ children }) => (
-      <h3 className="mt-8 scroll-mt-24 font-serif text-xl leading-snug">
-        {children}
-      </h3>
+      <h3 className="mt-8 scroll-mt-24 font-serif text-xl leading-snug">{children}</h3>
     ),
     blockquote: ({ children }) => (
       <blockquote className="my-8 border-l-2 border-black/20 pl-5 italic opacity-90">
@@ -134,51 +141,76 @@ const portableTextComponents: PortableTextComponents = {
     ),
   },
 
+  
+
   types: {
     tapPullQuote: ({ value }) => {
-      return (
-        <figure className="my-10 rounded-2xl border border-black/10 bg-white/70 p-6 text-center shadow-sm">
-          <blockquote className="font-serif text-2xl leading-snug">
-            “{value?.text}”
-          </blockquote>
-          {value?.attribution ? (
-            <figcaption className="mt-4 text-sm opacity-70">
-              — {value.attribution}
-            </figcaption>
+  return (
+    <figure className="my-12 mx-auto max-w-5xl text-center">
+      <blockquote className="font-serif text-3xl leading-snug tracking-tight">
+        “{value?.text}”
+      </blockquote>
+
+      {value?.attribution && (
+        <figcaption className="mt-4 text-sm uppercase tracking-[0.18em] opacity-60">
+          {value.attribution}
+        </figcaption>
+      )}
+    </figure>
+  )
+},
+
+sidenote: ({ value }) => {
+  if (!value?.text) return null
+
+  return (
+    <aside className="my-8">
+      {/* Desktop: margin-note effect by breaking wider and pushing to the right */}
+      <div className="relative left-1/2 -translate-x-1/2 w-[110vw] max-w-5xl">
+        <div className="lg:ml-auto lg:w-[320px] rounded-xl border border-black/10 bg-white/60 p-4 shadow-sm">
+          {value?.label ? (
+            <p className="text-xs font-semibold tracking-[0.2em] uppercase opacity-70">
+              {value.label}
+            </p>
           ) : null}
-        </figure>
-      )
-    },
+
+          <p className="mt-2 text-sm leading-relaxed opacity-85">{value.text}</p>
+
+          {value?.source ? (
+            <p className="mt-3 text-xs tracking-[0.18em] uppercase opacity-60">
+              {value.source}
+            </p>
+          ) : null}
+        </div>
+      </div>
+    </aside>
+  )
+},
 
     storyImage: ({ value }) => {
       const align = value?.align || "center"
       const img = value?.image
-
       if (!img) return null
 
-      // width: center can go a bit wider, left/right stays in column
+      // Align: center can go a bit wider. Left/right stays in column.
       const wrapperClass =
-        align === "center"
-          ? "my-10 mx-auto max-w-5xl"
-          : "my-8 max-w-3xl"
+  align === "center"
+    ? "my-12 relative left-1/2 -translate-x-1/2 w-[110vw] max-w-5xl"
+    : "my-10"
 
       const imgClass =
-        align === "left"
-          ? "mr-auto"
-          : align === "right"
-          ? "ml-auto"
-          : "mx-auto"
+        align === "left" ? "mr-auto" : align === "right" ? "ml-auto" : "mx-auto"
 
       return (
         <figure className={wrapperClass}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={urlFor(img).width(1800).quality(80).url()}
-            alt={value?.caption || ""}
+            alt={value?.alt || value?.caption || ""}
             className={`w-full rounded-xl border border-black/10 ${imgClass}`}
             loading="lazy"
           />
-          {(value?.caption || value?.credit) ? (
+          {value?.caption || value?.credit ? (
             <figcaption className="mt-3 text-sm opacity-70">
               {value?.caption ? <span>{value.caption}</span> : null}
               {value?.caption && value?.credit ? <span> · </span> : null}
@@ -194,7 +226,7 @@ const portableTextComponents: PortableTextComponents = {
       if (!images.length) return null
 
       return (
-        <section className="my-10 mx-auto max-w-5xl">
+        <section className="my-12 relative left-1/2 -translate-x-1/2 w-[110vw] max-w-5xl">
           <div
             className={[
               "flex gap-4 overflow-x-auto pb-3",
@@ -207,10 +239,7 @@ const portableTextComponents: PortableTextComponents = {
               const img = item?.image
               if (!img) return null
               return (
-                <figure
-                  key={idx}
-                  className="snap-start shrink-0 w-[85%] sm:w-[60%] md:w-[45%]"
-                >
+                <figure key={idx} className="snap-start shrink-0 w-[85%] sm:w-[60%] md:w-[45%]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={urlFor(img).width(1600).quality(80).url()}
@@ -218,7 +247,7 @@ const portableTextComponents: PortableTextComponents = {
                     className="w-full rounded-xl border border-black/10 object-cover"
                     loading="lazy"
                   />
-                  {(item?.caption || item?.credit) ? (
+                  {item?.caption || item?.credit ? (
                     <figcaption className="mt-2 text-sm opacity-70">
                       {item?.caption ? <span>{item.caption}</span> : null}
                       {item?.caption && item?.credit ? <span> · </span> : null}
@@ -230,21 +259,29 @@ const portableTextComponents: PortableTextComponents = {
             })}
           </div>
 
-          {/* subtle hint only when it’s actually scrollable */}
           {images.length >= 3 ? (
-            <p className="mt-2 text-xs tracking-[0.18em] uppercase opacity-50">
-              Scroll →
-            </p>
+            <p className="mt-2 text-xs tracking-[0.18em] uppercase opacity-50">Scroll →</p>
           ) : null}
         </section>
       )
     },
 
     artifactEmbed: ({ value }) => {
-      // v1: simplest approach = query already includes artifacts[] at end,
-      // but embeds need data too. We'll solve this in the query in Step 5.
+      // IMPORTANT:
+      // This expects the embed value to contain a populated artifact object at value.artifact.
+      // If your schema stores a reference (typical), you must either:
+      // 1) Expand it in GROQ (recommended), or
+      // 2) Render a fallback UI without needing the full object.
       const a = value?.artifact
-      if (!a) return null
+      if (!a) {
+        return (
+          <aside className="my-12 relative left-1/2 -translate-x-1/2 w-[110vw] max-w-4xl rounded-2xl border border-black/10 bg-white/70 p-6 shadow-sm">
+            <p className="text-sm opacity-70">
+              (Artifact embed missing data — update GROQ to dereference.)
+            </p>
+          </aside>
+        )
+      }
 
       const imgUrl = a.heroImage
         ? urlFor(a.heroImage).width(1200).height(700).quality(80).url()
@@ -253,9 +290,7 @@ const portableTextComponents: PortableTextComponents = {
       return (
         <aside className="my-10 rounded-2xl border border-black/10 bg-white/70 p-5 shadow-sm">
           <div className="flex items-baseline justify-between gap-4">
-            <p className="text-xs font-semibold tracking-[0.2em] uppercase opacity-70">
-              Evidence
-            </p>
+            <p className="text-xs font-semibold tracking-[0.2em] uppercase opacity-70">Evidence</p>
             <Link
               href={`/artifacts/${a.slug}`}
               className="text-xs tracking-[0.2em] uppercase opacity-60 hover:opacity-90"
@@ -289,9 +324,7 @@ const portableTextComponents: PortableTextComponents = {
               </span>
             ) : null}
             {a.civicTag ? (
-              <span className="rounded-full border border-black/10 px-2 py-0.5">
-                {a.civicTag}
-              </span>
+              <span className="rounded-full border border-black/10 px-2 py-0.5">{a.civicTag}</span>
             ) : null}
             {a.artifactType ? (
               <span className="rounded-full border border-black/10 px-2 py-0.5">
@@ -316,10 +349,9 @@ export default async function EssayPage({
 
   const essay = await client.fetch<Essay>(essayBySlugQuery, { slug })
   if (!essay?.title) notFound()
-  if (!slug) notFound()
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
+    <main className="mx-auto max-w-[760px] px-4 py-10">
       <header className="mb-8">
         {essay.section?.title ? (
           <p className="text-xs font-semibold tracking-[0.2em] uppercase opacity-70">
@@ -338,9 +370,7 @@ export default async function EssayPage({
         ) : null}
 
         {essay.authors?.length ? (
-          <p className="mt-4 text-sm opacity-70">
-            By {essay.authors.map((a) => a.name).join(", ")}
-          </p>
+          <p className="mt-4 text-sm opacity-70">By {essay.authors.map((a) => a.name).join(", ")}</p>
         ) : null}
       </header>
 
@@ -419,7 +449,9 @@ export default async function EssayPage({
       ) : null}
 
       <p className="mt-12 border-t border-black/10 pt-6 text-sm opacity-80">
-        <span role="img" aria-label="Mail">✉️</span>{" "}
+        <span role="img" aria-label="Mail">
+          ✉️
+        </span>{" "}
         Respond to this essay at{" "}
         <a
           href={`mailto:rick@theamericanpiedmont.com?subject=${encodeURIComponent(

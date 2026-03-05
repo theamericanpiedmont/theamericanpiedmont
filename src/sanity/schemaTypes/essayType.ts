@@ -65,12 +65,11 @@ export const essayType = defineType({
     }),
 
     defineField({
-      name: 'body',
-      title: 'Body',
-      type: 'array',
-      of: [{ type: 'block' }],
-      validation: (Rule) => Rule.required(),
-    }),
+  name: "body",
+  title: "Body",
+  type: "blockContent",
+  validation: (Rule) => Rule.required(),
+}),
 
     // 🔎 NEW: Artifact references (Evidence layer)
     defineField({

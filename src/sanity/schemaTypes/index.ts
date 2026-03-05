@@ -1,3 +1,5 @@
+console.log("✅ sanity.config.ts LOADED (TAP)")
+
 import { type SchemaTypeDefinition } from "sanity"
 
 import { authorType } from "./authorType"
@@ -10,13 +12,12 @@ import { marginaliaSignalType } from "./marginaliaSignalType"
 import { artifactType } from "./artifactType"
 import { signalRunType } from "./signalRun"
 
-// Temporarily disable new schema imports
+// New types (enable one at a time while debugging)
 import { pullQuoteType } from "./pullQuoteType"
-// import { artifactEmbedType } from "./artifactEmbedType"
-// import { storyImageType } from "./storyImageType"
-// import { galleryType } from "./galleryType"
-
-
+import { artifactEmbedType } from "./artifactEmbedType"
+import { storyImageType } from "./storyImageType"
+import { galleryType } from "./galleryType"
+import { sidenoteType } from "./sidenoteType"
 
 const typePairs: Array<{ key: string; val: SchemaTypeDefinition | undefined }> = [
   { key: "authorType", val: authorType },
@@ -28,46 +29,30 @@ const typePairs: Array<{ key: string; val: SchemaTypeDefinition | undefined }> =
   { key: "artifactType", val: artifactType },
   { key: "marginaliaType", val: marginaliaType },
   { key: "marginaliaSignalType", val: marginaliaSignalType },
-
-  // Temporarily disable new schema types
+  { key: "sidenoteType", val: sidenoteType },
   { key: "pullQuoteType", val: pullQuoteType },
-  // { key: "artifactEmbedType", val: artifactEmbedType },
-  // { key: "storyImageType", val: storyImageType },
-  // { key: "galleryType", val: galleryType },
+  { key: "artifactEmbedType", val: artifactEmbedType },
+  { key: "storyImageType", val: storyImageType },
+  { key: "galleryType", val: galleryType },
 ]
 
-// Throw readable errors instead of Sanity’s generic SchemaError
-const names = new Map<string, string>() // name -> key
-console.log("SCHEMA TYPES LOADED:", typePairs.map(t => `${t.key}:${(t.val as any)?.name}`))
-
-for (const t of typePairs) {
-  if (!t.val) throw new Error(`Sanity schema type import is undefined: ${t.key}`)
-
-  const name = (t.val as any).name
-  if (!name) throw new Error(`Sanity schema type missing "name": ${t.key}`)
-
-  if (names.has(name)) {
-    throw new Error(
-      `Duplicate Sanity schema type name "${name}" from "${t.key}" and "${names.get(name)}"`
-    )
-  }
-  names.set(name, t.key)
-}
-
-// ---- TEMP DEBUG (remove after fix) ----
+// ---- TEMP DEBUG: make schema errors readable (remove after fix) ----
 const schemaNames = typePairs.map((t) => ({
   key: t.key,
   name: (t.val as any)?.name,
   type: (t.val as any)?.type,
 }))
 
-console.log("SANITY_SCHEMA_TYPES:", schemaNames)
-
+// If any import is undefined or missing "name", throw a readable error
 const missing = schemaNames.filter((x) => !x.name)
 if (missing.length) {
-  throw new Error("Sanity schema types missing name: " + JSON.stringify(missing))
+  throw new Error(
+    "Sanity schema types missing/undefined (key:name:type): " +
+      JSON.stringify(schemaNames, null, 2)
+  )
 }
 
+// Detect duplicate schema type names (Sanity requires all names unique)
 const counts = schemaNames.reduce((acc: Record<string, number>, x) => {
   acc[x.name] = (acc[x.name] || 0) + 1
   return acc
@@ -75,7 +60,12 @@ const counts = schemaNames.reduce((acc: Record<string, number>, x) => {
 
 const dupes = Object.entries(counts).filter(([, n]) => n > 1)
 if (dupes.length) {
-  throw new Error("Duplicate Sanity schema type names: " + JSON.stringify(dupes))
+  throw new Error(
+    "Duplicate Sanity schema type names found: " +
+      JSON.stringify(dupes, null, 2) +
+      "\n\nFull list (key:name:type):\n" +
+      JSON.stringify(schemaNames, null, 2)
+  )
 }
 // ---- END TEMP DEBUG ----
 

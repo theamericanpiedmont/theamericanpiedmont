@@ -17,6 +17,8 @@ import {
 } from "./src/sanity/documentActions/marginaliaSignalActions"
 
 console.log("SANITY_SCHEMA_TYPE_NAMES", schema?.types?.map((t: any) => t?.name))
+import { assertNoDuplicateSchemaNames } from "./src/sanity/schemaTypes/_debugSchema"
+assertNoDuplicateSchemaNames()
 
 export default defineConfig({
   basePath: "/studio",

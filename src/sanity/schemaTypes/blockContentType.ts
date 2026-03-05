@@ -40,6 +40,9 @@ export const blockContentType = defineType({
     }),
 
     // Existing inline image (keep if you want)
+    
+    defineArrayMember({ type: "sidenote" }),
+    
     defineArrayMember({
       type: "image",
       icon: ImageIcon,
