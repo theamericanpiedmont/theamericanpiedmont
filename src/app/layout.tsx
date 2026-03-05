@@ -14,6 +14,17 @@ const spectral = Spectral({
 export const metadata: Metadata = {
   title: "The American Piedmont",
   description: "Where memory meets power.",
+
+icons: {
+    icon: "/icon.png",
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
+
+openGraph: {
+    images: ["/og"]
+  }
+
 };
 
 export default function RootLayout({

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import imageUrlBuilder from "@sanity/image-url"
 import { client } from "@/sanity/lib/client"
+import { formatShortISO } from "@/lib/format"
 
 const builder = imageUrlBuilder(client)
 const urlFor = (source: any) => builder.image(source)
@@ -86,10 +87,10 @@ export default async function FieldNotesIndexPage() {
                     {n.publishedAt ? <span>•</span> : null}
 
                     {n.publishedAt ? (
-                      <time dateTime={n.publishedAt}>
-                        {new Date(n.publishedAt).toLocaleDateString()}
-                      </time>
-                    ) : null}
+  <time dateTime={n.publishedAt}>
+    {formatShortISO(n.publishedAt)}
+  </time>
+) : null}
                   </div>
 
                   <h2 className="mt-2 font-serif text-2xl leading-tight group-hover:underline underline-offset-4">
