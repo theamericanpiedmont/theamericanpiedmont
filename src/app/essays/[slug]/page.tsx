@@ -5,7 +5,11 @@ import { PortableText } from "@portabletext/react"
 import type { PortableTextComponents } from "@portabletext/react"
 import imageUrlBuilder from "@sanity/image-url"
 import { client } from "@/sanity/lib/client"
+import ArtifactPreviewImage from "@/components/ArtifactPreviewImage"
 import { formatLongDate, labelize } from "../../../lib/format"
+
+// ✅ import the query from sanity/lib so this page stays in sync
+import { essayBySlugQuery } from "@/sanity/lib/queries"
 
 export const revalidate = 60
 
@@ -21,6 +25,16 @@ type ArtifactRef = {
   civicTag?: string
   summary?: string
   heroImage?: any
+
+  // ✅ new fields (from updated GROQ)
+  heroFileUrl?: string
+  sourceUrl?: string
+  transcription?: string
+  keyExcerpt?: string
+  provenance?: string
+  archiveRef?: string
+  dateCreated?: string
+  dateDiscovered?: string
 }
 
 type Essay = {
@@ -33,33 +47,6 @@ type Essay = {
   section?: { title: string; slug: string }
   artifacts?: ArtifactRef[]
 }
-
-const essayBySlugQuery = /* groq */ `
-*[
-  _type == "essay" &&
-  defined(slug.current) &&
-  slug.current == $slug &&
-  !(_id in path("drafts.**"))
-][0]{
-  title,
-  dek,
-  publishedAt,
-  heroImage,
-  body,
-  "authors": authors[]-> {name},
-  "section": section-> {title, "slug": slug.current},
-  "artifacts": artifacts[]->{
-    _id,
-    title,
-    "slug": slug.current,
-    artifactType,
-    pillar,
-    civicTag,
-    summary,
-    heroImage
-  }
-}
-`
 
 function canonicalFor(slug: string) {
   const base = (process.env.NEXT_PUBLIC_SITE_URL || "https://theamericanpiedmont.com").replace(
@@ -78,10 +65,9 @@ export async function generateMetadata({
   const slug = decodeURIComponent(resolved.slug || "")
   if (!slug) return {}
 
-  const essay = await client.fetch<Pick<Essay, "title" | "dek" | "publishedAt">>(
-    essayBySlugQuery,
-    { slug }
-  )
+  const essay = await client.fetch<Pick<Essay, "title" | "dek" | "publishedAt">>(essayBySlugQuery, {
+    slug,
+  })
   if (!essay?.title) return {}
 
   const title = `${essay.title} — The American Piedmont`
@@ -102,11 +88,6 @@ export async function generateMetadata({
 
 /**
  * PortableText renderers
- * NOTE:
- * - Your pull quote type key must match the Sanity type name.
- *   If your schema type is named "tapPullQuote" (recommended), keep as-is.
- *   If it is named "pullQuote", change the key below accordingly.
- * - artifactEmbed currently expects value.artifact to be populated; see note in component.
  */
 const portableTextComponents: PortableTextComponents = {
   marks: {
@@ -141,62 +122,58 @@ const portableTextComponents: PortableTextComponents = {
     ),
   },
 
-  
-
   types: {
     tapPullQuote: ({ value }) => {
-  return (
-    <figure className="my-12 mx-auto max-w-5xl text-center">
-      <blockquote className="font-serif text-3xl leading-snug tracking-tight">
-        “{value?.text}”
-      </blockquote>
+      return (
+        <figure className="my-12 mx-auto max-w-5xl text-center">
+          <blockquote className="font-serif text-3xl leading-snug tracking-tight">
+            “{value?.text}”
+          </blockquote>
 
-      {value?.attribution && (
-        <figcaption className="mt-4 text-sm uppercase tracking-[0.18em] opacity-60">
-          {value.attribution}
-        </figcaption>
-      )}
-    </figure>
-  )
-},
+          {value?.attribution && (
+            <figcaption className="mt-4 text-sm uppercase tracking-[0.18em] opacity-60">
+              {value.attribution}
+            </figcaption>
+          )}
+        </figure>
+      )
+    },
 
-sidenote: ({ value }) => {
-  if (!value?.text) return null
+    sidenote: ({ value }) => {
+      if (!value?.text) return null
 
-  return (
-    <aside className="my-8">
-      {/* Desktop: margin-note effect by breaking wider and pushing to the right */}
-      <div className="relative left-1/2 -translate-x-1/2 w-[110vw] max-w-5xl">
-        <div className="lg:ml-auto lg:w-[320px] rounded-xl border border-black/10 bg-white/60 p-4 shadow-sm">
-          {value?.label ? (
-            <p className="text-xs font-semibold tracking-[0.2em] uppercase opacity-70">
-              {value.label}
-            </p>
-          ) : null}
+      return (
+        <aside className="my-8">
+          <div className="relative left-1/2 -translate-x-1/2 w-[110vw] max-w-5xl">
+            <div className="lg:ml-auto lg:w-[320px] rounded-xl border border-black/10 bg-white/60 p-4 shadow-sm">
+              {value?.label ? (
+                <p className="text-xs font-semibold tracking-[0.2em] uppercase opacity-70">
+                  {value.label}
+                </p>
+              ) : null}
 
-          <p className="mt-2 text-sm leading-relaxed opacity-85">{value.text}</p>
+              <p className="mt-2 text-sm leading-relaxed opacity-85">{value.text}</p>
 
-          {value?.source ? (
-            <p className="mt-3 text-xs tracking-[0.18em] uppercase opacity-60">
-              {value.source}
-            </p>
-          ) : null}
-        </div>
-      </div>
-    </aside>
-  )
-},
+              {value?.source ? (
+                <p className="mt-3 text-xs tracking-[0.18em] uppercase opacity-60">
+                  {value.source}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </aside>
+      )
+    },
 
     storyImage: ({ value }) => {
       const align = value?.align || "center"
       const img = value?.image
       if (!img) return null
 
-      // Align: center can go a bit wider. Left/right stays in column.
       const wrapperClass =
-  align === "center"
-    ? "my-12 relative left-1/2 -translate-x-1/2 w-[110vw] max-w-5xl"
-    : "my-10"
+        align === "center"
+          ? "my-12 relative left-1/2 -translate-x-1/2 w-[110vw] max-w-5xl"
+          : "my-10"
 
       const imgClass =
         align === "left" ? "mr-auto" : align === "right" ? "ml-auto" : "mx-auto"
@@ -266,73 +243,167 @@ sidenote: ({ value }) => {
       )
     },
 
+    // ✅ UPDATED ArtifactEmbed: show “what’s in the artifact”
     artifactEmbed: ({ value }) => {
-      // IMPORTANT:
-      // This expects the embed value to contain a populated artifact object at value.artifact.
-      // If your schema stores a reference (typical), you must either:
-      // 1) Expand it in GROQ (recommended), or
-      // 2) Render a fallback UI without needing the full object.
-      const a = value?.artifact
-      if (!a) {
+      const a = value?.artifact as ArtifactRef | undefined
+      if (!a?.slug) {
         return (
           <aside className="my-12 relative left-1/2 -translate-x-1/2 w-[110vw] max-w-4xl rounded-2xl border border-black/10 bg-white/70 p-6 shadow-sm">
             <p className="text-sm opacity-70">
-              (Artifact embed missing data — update GROQ to dereference.)
-            </p>
+  (Artifact embed missing data — update GROQ to dereference the artifact reference.)
+</p>
           </aside>
         )
       }
 
-      const imgUrl = a.heroImage
-        ? urlFor(a.heroImage).width(1200).height(700).quality(80).url()
+      const hasImage = !!a.heroImage
+      const hasFile = !!a.heroFileUrl
+      const excerpt = (a.keyExcerpt || a.transcription || "").trim()
+      const excerptShort =
+        excerpt.length > 520 ? `${excerpt.slice(0, 520).trim()}…` : excerpt || null
+
+      const imgUrl = hasImage
+        ? urlFor(a.heroImage)
+            .width(1800)
+            .height(1200)
+            .fit("crop")
+            .quality(80)
+            .url()
         : null
 
       return (
-        <aside className="my-10 rounded-2xl border border-black/10 bg-white/70 p-5 shadow-sm">
-          <div className="flex items-baseline justify-between gap-4">
-            <p className="text-xs font-semibold tracking-[0.2em] uppercase opacity-70">Evidence</p>
-            <Link
-              href={`/artifacts/${a.slug}`}
-              className="text-xs tracking-[0.2em] uppercase opacity-60 hover:opacity-90"
-            >
-              View →
-            </Link>
+        <figure className="my-12 relative left-1/2 -translate-x-1/2 w-[110vw] max-w-5xl">
+          <div className="rounded-2xl border border-black/10 bg-white shadow-sm overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-black/10 bg-black/[0.02]">
+              <div className="text-[11px] font-semibold tracking-[0.2em] uppercase opacity-70">
+                Evidence
+              </div>
+              <Link
+                href={`/artifacts/${a.slug}`}
+                className="text-[11px] tracking-[0.2em] uppercase opacity-60 hover:opacity-90"
+              >
+                View →
+              </Link>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-5">
+              {/* Preview panel */}
+              <div className="rounded-2xl border border-black/10 bg-black/[0.03] overflow-hidden">
+                {a.heroImage ? (
+  <ArtifactPreviewImage image={a.heroImage} alt={a.title} />
+) : hasFile ? (
+                  <div className="p-5">
+                    <div className="text-[11px] font-semibold tracking-[0.2em] uppercase opacity-70">
+                      Document
+                    </div>
+                    <p className="mt-2 text-sm leading-relaxed opacity-80">
+                      This artifact includes an attached scan/PDF.
+                    </p>
+                    <a
+                      href={a.heroFileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-4 inline-flex items-center rounded-xl border border-black/10 bg-white px-4 py-2 text-xs font-semibold tracking-[0.12em] uppercase hover:bg-black/[0.03]"
+                    >
+                      Open file →
+                    </a>
+                  </div>
+                ) : (
+                  <div className="aspect-[4/3] w-full flex items-center justify-center text-xs opacity-60">
+                    No preview available
+                  </div>
+                )}
+
+                {/* Optional embed caption */}
+                {value?.caption ? (
+                  <div className="border-t border-black/10 bg-white px-4 py-3 text-xs leading-relaxed opacity-70">
+                    {value.caption}
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Text / metadata */}
+              <div className="min-w-0">
+                <div className="text-[11px] tracking-[0.2em] uppercase opacity-60">
+                  {a.artifactType ? labelize(a.artifactType) : "Artifact"}
+                  {a.dateCreated ? <span> • {a.dateCreated}</span> : null}
+                </div>
+
+                <h4 className="mt-2 font-serif text-xl leading-snug">{a.title}</h4>
+
+                {a.summary ? (
+                  <p className="mt-2 text-sm leading-relaxed opacity-80">{a.summary}</p>
+                ) : null}
+
+                {excerptShort ? (
+                  <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-4">
+                    <div className="text-[11px] font-semibold tracking-[0.2em] uppercase opacity-70">
+                      {a.keyExcerpt ? "Key excerpt" : "Transcription"}
+                    </div>
+                    <p className="mt-2 text-sm leading-relaxed opacity-85 whitespace-pre-wrap">
+                      {excerptShort}
+                    </p>
+                  </div>
+                ) : null}
+
+                {a.archiveRef ? (
+                  <p className="mt-4 text-xs leading-relaxed opacity-70">
+                    <span className="font-semibold tracking-[0.12em] uppercase">
+                      Archive ref:
+                    </span>{" "}
+                    {a.archiveRef}
+                  </p>
+                ) : null}
+
+                {a.sourceUrl ? (
+                  <p className="mt-2 text-xs leading-relaxed opacity-70">
+                    <a
+                      href={a.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline underline-offset-4 hover:opacity-90"
+                    >
+                      Source link →
+                    </a>
+                  </p>
+                ) : null}
+
+                <div className="mt-4 flex flex-wrap gap-2 text-[11px] opacity-70">
+                  {a.pillar ? (
+                    <span className="rounded-full border border-black/10 px-2 py-0.5">
+                      {labelize(a.pillar)}
+                    </span>
+                  ) : null}
+                  {a.civicTag ? (
+                    <span className="rounded-full border border-black/10 px-2 py-0.5">
+                      {a.civicTag}
+                    </span>
+                  ) : null}
+                  {a.artifactType ? (
+                    <span className="rounded-full border border-black/10 px-2 py-0.5">
+                      {labelize(a.artifactType)}
+                    </span>
+                  ) : null}
+                </div>
+
+                {hasFile ? (
+                  <div className="mt-4">
+                    <a
+                      href={a.heroFileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center rounded-xl border border-black/10 bg-white px-4 py-2 text-xs font-semibold tracking-[0.12em] uppercase hover:bg-black/[0.03]"
+                    >
+                      Open document →
+                    </a>
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
-
-          {imgUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={imgUrl}
-              alt={a.title}
-              className="mt-4 h-56 w-full rounded-xl border border-black/10 object-cover"
-              loading="lazy"
-            />
-          ) : null}
-
-          <h4 className="mt-4 font-serif text-xl leading-snug">{a.title}</h4>
-
-          {value?.caption ? (
-            <p className="mt-2 text-sm opacity-80">{value.caption}</p>
-          ) : a.summary ? (
-            <p className="mt-2 text-sm opacity-80">{a.summary}</p>
-          ) : null}
-
-          <div className="mt-3 flex flex-wrap gap-2 text-[11px] opacity-70">
-            {a.pillar ? (
-              <span className="rounded-full border border-black/10 px-2 py-0.5">
-                {labelize(a.pillar)}
-              </span>
-            ) : null}
-            {a.civicTag ? (
-              <span className="rounded-full border border-black/10 px-2 py-0.5">{a.civicTag}</span>
-            ) : null}
-            {a.artifactType ? (
-              <span className="rounded-full border border-black/10 px-2 py-0.5">
-                {labelize(a.artifactType)}
-              </span>
-            ) : null}
-          </div>
-        </aside>
+        </figure>
       )
     },
   },
@@ -383,7 +454,6 @@ export default async function EssayPage({
         />
       ) : null}
 
-      {/* Only links inside this article body will get the “webby” underline style */}
       <article className="tap-article">
         <PortableText value={essay.body} components={portableTextComponents} />
       </article>

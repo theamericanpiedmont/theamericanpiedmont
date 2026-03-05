@@ -1,3 +1,5 @@
+// sanity/lib/queries.ts
+
 export const homeQuery = /* groq */ `
 {
   "leadEssay": *[
@@ -29,28 +31,28 @@ export const homeQuery = /* groq */ `
     lede,
     heroImage,
     thumbnail,
-    section->{title, "slug": slug.current}
+    section->{ title, "slug": slug.current }
   },
 
   "publishedSignals": *[
-  _type == "marginaliaSignal" &&
-  (!defined(status) || status in ["published","approved"]) &&
-  defined(coalesce(publishedAt, _updatedAt)) &&
-  defined(headline) &&
-  defined(url) &&
-  !(_id in path("drafts.**"))
-] | order(coalesce(publishedAt, _updatedAt) desc)[0...20]{
-  _id,
-  headline,
-  url,
-  source,
-  sourceDomain,
-  pillar,
-  civicTag,
-  score,
-  publishedAt,
-  sourceUrl
-},
+    _type == "marginaliaSignal" &&
+    (!defined(status) || status in ["published","approved"]) &&
+    defined(coalesce(publishedAt, _updatedAt)) &&
+    defined(headline) &&
+    defined(url) &&
+    !(_id in path("drafts.**"))
+  ] | order(coalesce(publishedAt, _updatedAt) desc)[0...20]{
+    _id,
+    headline,
+    url,
+    source,
+    sourceDomain,
+    pillar,
+    civicTag,
+    score,
+    publishedAt,
+    sourceUrl
+  },
 
   "artifactPool": *[
     _type == "artifact" &&
@@ -66,14 +68,10 @@ export const homeQuery = /* groq */ `
     pillar,
     civicTag,
     artifactType
-  },
-
-
-  
+  }
 }
 `
 
-// sanity/lib/queries.ts
 export const essaysIndexQuery = /* groq */ `
 *[
   _type == "essay" &&
@@ -150,7 +148,8 @@ export const artifactsIndexQuery = /* groq */ `
 }
 `
 
-const essayBySlugQuery = /* groq */ `
+// ✅ Export this so your essay slug page can import it
+export const essayBySlugQuery = /* groq */ `
 *[
   _type == "essay" &&
   defined(slug.current) &&
@@ -173,12 +172,20 @@ const essayBySlugQuery = /* groq */ `
         pillar,
         civicTag,
         summary,
-        heroImage
+        provenance,
+        dateCreated,
+        dateDiscovered,
+        archiveRef,
+        heroImage,
+        "heroFileUrl": heroFile.asset->url,
+        sourceUrl,
+        transcription,
+        keyExcerpt
       }
     }
   },
-  "authors": authors[]-> {name},
-  "section": section-> {title, "slug": slug.current},
+  "authors": authors[]-> { name },
+  "section": section-> { title, "slug": slug.current },
   "artifacts": artifacts[]->{
     _id,
     title,
@@ -187,7 +194,15 @@ const essayBySlugQuery = /* groq */ `
     pillar,
     civicTag,
     summary,
-    heroImage
+    provenance,
+    dateCreated,
+    dateDiscovered,
+    archiveRef,
+    heroImage,
+    "heroFileUrl": heroFile.asset->url,
+    sourceUrl,
+    transcription,
+    keyExcerpt
   }
 }
 `
