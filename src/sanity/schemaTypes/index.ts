@@ -10,10 +10,11 @@ import { marginaliaSignalType } from "./marginaliaSignalType"
 import { artifactType } from "./artifactType"
 import { signalRunType } from "./signalRun"
 
+// Temporarily disable new schema imports
 import { pullQuoteType } from "./pullQuoteType"
-import { artifactEmbedType } from "./artifactEmbedType"
-import { storyImageType } from "./storyImageType"
-import { galleryType } from "./galleryType"
+// import { artifactEmbedType } from "./artifactEmbedType"
+// import { storyImageType } from "./storyImageType"
+// import { galleryType } from "./galleryType"
 
 const typePairs: Array<{ key: string; val: SchemaTypeDefinition | undefined }> = [
   { key: "authorType", val: authorType },
@@ -26,11 +27,11 @@ const typePairs: Array<{ key: string; val: SchemaTypeDefinition | undefined }> =
   { key: "marginaliaType", val: marginaliaType },
   { key: "marginaliaSignalType", val: marginaliaSignalType },
 
-  // New ones
+  // Temporarily disable new schema types
   { key: "pullQuoteType", val: pullQuoteType },
-  { key: "artifactEmbedType", val: artifactEmbedType },
-  { key: "storyImageType", val: storyImageType },
-  { key: "galleryType", val: galleryType },
+  // { key: "artifactEmbedType", val: artifactEmbedType },
+  // { key: "storyImageType", val: storyImageType },
+  // { key: "galleryType", val: galleryType },
 ]
 
 // Throw a readable error instead of Sanity’s generic SchemaError
