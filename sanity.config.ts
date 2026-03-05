@@ -16,6 +16,8 @@ import {
   rejectNowAction,
 } from "./src/sanity/documentActions/marginaliaSignalActions"
 
+console.log("SANITY_SCHEMA_TYPE_NAMES", schema?.types?.map((t: any) => t?.name))
+
 export default defineConfig({
   basePath: "/studio",
   projectId,
