@@ -196,6 +196,8 @@ const portableTextComponents: PortableTextComponents = {
 
   const src = urlFor(img).width(2200).quality(85).auto("format").url()
 
+console.log("storyImage value", value)
+
   return (
     <figure className={wrapperClass}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -211,6 +213,28 @@ const portableTextComponents: PortableTextComponents = {
           {value?.caption && value?.credit ? <span> · </span> : null}
           {value?.credit ? <span>{value.credit}</span> : null}
         </figcaption>
+      ) : null}
+    </figure>
+  )
+},
+
+image: ({ value }) => {
+  const img = value
+  if (!img) return null
+
+  const src = urlFor(img).width(2200).quality(85).auto("format").url()
+
+  return (
+    <figure className="my-12 relative left-1/2 -translate-x-1/2 w-[110vw] max-w-5xl">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={value?.alt || ""}
+        className="w-full rounded-xl border border-black/10 object-cover"
+        loading="lazy"
+      />
+      {value?.alt ? (
+        <figcaption className="mt-3 text-sm opacity-70">{value.alt}</figcaption>
       ) : null}
     </figure>
   )
