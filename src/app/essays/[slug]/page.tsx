@@ -180,27 +180,30 @@ const portableTextComponents: PortableTextComponents = {
     },
 
     storyImage: ({ value }) => {
-  const align = value?.align || "center"
+  const align = (value?.align as "left" | "right" | "center" | undefined) ?? "center"
+  const size = (value?.displaySize as "small" | "medium" | "large" | undefined) ?? "medium"
   const img = value?.image
+
   if (!img) return null
 
-  // ✅ NEW: narrow, smaller-than-copy default
-  // - copy column is 760px max
-  // - images default to 560px max (tweak to taste)
-  const baseWrap = "my-10 mx-auto w-full max-w-[560px]"
+  // Width presets
+  let baseWidth = "max-w-[560px]" // medium default
+  if (size === "small") baseWidth = "max-w-[420px]"
+  if (size === "large") baseWidth = "max-w-[760px]"
+
   const wrapClass =
     align === "left"
-      ? "my-10 mr-auto w-full max-w-[560px]"
+      ? `my-10 mr-auto w-full ${baseWidth}`
       : align === "right"
-        ? "my-10 ml-auto w-full max-w-[560px]"
-        : baseWrap
+        ? `my-10 ml-auto w-full ${baseWidth}`
+        : `my-10 mx-auto w-full ${baseWidth}`
 
   return (
     <figure className={wrapClass}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={urlFor(img).width(1600).quality(85).auto("format").url()}
-        alt={value?.alt || value?.caption || ""}
+        alt={value?.caption || ""}
         className="w-full rounded-xl border border-black/10 object-cover"
         loading="lazy"
       />

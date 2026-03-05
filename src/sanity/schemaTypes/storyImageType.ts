@@ -12,8 +12,19 @@ export const storyImageType = defineType({
       options: { hotspot: true },
       validation: (Rule) => Rule.required(),
     }),
-    defineField({ name: "caption", title: "Caption (optional)", type: "string" }),
-    defineField({ name: "credit", title: "Credit (optional)", type: "string" }),
+
+    defineField({
+      name: "caption",
+      title: "Caption (optional)",
+      type: "string",
+    }),
+
+    defineField({
+      name: "credit",
+      title: "Credit (optional)",
+      type: "string",
+    }),
+
     defineField({
       name: "align",
       title: "Align",
@@ -28,11 +39,36 @@ export const storyImageType = defineType({
       },
       initialValue: "center",
     }),
+
+    // ✅ NEW
+    defineField({
+      name: "displaySize",
+      title: "Display Size",
+      type: "string",
+      options: {
+        list: [
+          { title: "Small", value: "small" },
+          { title: "Medium", value: "medium" },
+          { title: "Large", value: "large" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "medium",
+    }),
   ],
+
   preview: {
-    select: { media: "image", title: "caption", subtitle: "credit" },
+    select: {
+      media: "image",
+      title: "caption",
+      subtitle: "credit",
+    },
     prepare({ media, title, subtitle }) {
-      return { media, title: title || "Story Image", subtitle: subtitle || "" }
+      return {
+        media,
+        title: title || "Story Image",
+        subtitle: subtitle || "",
+      }
     },
   },
 })
