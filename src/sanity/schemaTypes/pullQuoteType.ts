@@ -1,3 +1,4 @@
+// src/sanity/schemaTypes/pullQuoteType.ts
 import { defineType, defineField } from "sanity"
 
 export const pullQuoteType = defineType({
@@ -9,7 +10,6 @@ export const pullQuoteType = defineType({
       name: "text",
       title: "Quote",
       type: "text",
-      rows: 3,
       validation: (Rule) => Rule.required(),
     }),
     defineField({
@@ -19,11 +19,15 @@ export const pullQuoteType = defineType({
     }),
   ],
   preview: {
-    select: { title: "text", subtitle: "attribution" },
-    prepare({ title, subtitle }) {
+    select: {
+      text: "text",
+      attribution: "attribution",
+    },
+    prepare({ text, attribution }) {
+      const t = typeof text === "string" ? text : ""
       return {
-        title: title ? String(title).slice(0, 60) : "Pull Quote",
-        subtitle: subtitle ? `— ${subtitle}` : "Pull Quote",
+        title: t ? t.slice(0, 60) : "Pull Quote",
+        subtitle: attribution ? `— ${attribution}` : "Pull Quote",
       }
     },
   },
