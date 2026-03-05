@@ -27,6 +27,7 @@ type ArtifactRef = {
   heroImage?: any
 
   // ✅ new fields (from updated GROQ)
+  heroImageUrl?: string
   heroFileUrl?: string
   sourceUrl?: string
   transcription?: string
@@ -262,14 +263,10 @@ const portableTextComponents: PortableTextComponents = {
       const excerptShort =
         excerpt.length > 520 ? `${excerpt.slice(0, 520).trim()}…` : excerpt || null
 
-      const imgUrl = hasImage
-        ? urlFor(a.heroImage)
-            .width(1800)
-            .height(1200)
-            .fit("crop")
-            .quality(80)
-            .url()
-        : null
+      const imgSrc =
+  a.heroImage
+    ? urlFor(a.heroImage).width(1800).quality(80).auto("format").url()
+    : a.heroImageUrl || null
 
       return (
         <figure className="my-12 relative left-1/2 -translate-x-1/2 w-[110vw] max-w-5xl">
@@ -477,14 +474,14 @@ export default async function EssayPage({
                   className="group rounded-xl border border-black/10 bg-white p-4 shadow-sm transition hover:shadow-md"
                 >
                   {imgUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={imgUrl}
-                      alt={a.title}
-                      className="mb-3 h-40 w-full rounded-lg border border-black/10 object-cover"
-                      loading="lazy"
-                    />
-                  ) : null}
+  // eslint-disable-next-line @next/next/no-img-element
+  <img
+    src={imgUrl}
+    alt={a.title}
+    className="mb-3 h-40 w-full rounded-lg border border-black/10 object-cover"
+    loading="lazy"
+  />
+) : null}
 
                   <div className="flex flex-wrap gap-2 text-[11px] opacity-70">
                     {a.pillar ? (

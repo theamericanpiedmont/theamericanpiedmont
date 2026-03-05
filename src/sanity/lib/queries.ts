@@ -65,6 +65,7 @@ export const homeQuery = /* groq */ `
     "slug": slug.current,
     summary,
     heroImage,
+    "heroImageUrl": heroImage.asset->url,
     pillar,
     civicTag,
     artifactType
@@ -142,6 +143,7 @@ export const artifactsIndexQuery = /* groq */ `
   "slug": slug.current,
   summary,
   heroImage,
+  "heroImageUrl": heroImage.asset->url,
   pillar,
   civicTag,
   artifactType
@@ -177,6 +179,7 @@ export const essayBySlugQuery = /* groq */ `
         dateDiscovered,
         archiveRef,
         heroImage,
+        "heroImageUrl": heroImage.asset->url,
         "heroFileUrl": heroFile.asset->url,
         sourceUrl,
         transcription,
@@ -199,6 +202,7 @@ export const essayBySlugQuery = /* groq */ `
     dateDiscovered,
     archiveRef,
     heroImage,
+    "heroImageUrl": heroImage.asset->url,
     "heroFileUrl": heroFile.asset->url,
     sourceUrl,
     transcription,
