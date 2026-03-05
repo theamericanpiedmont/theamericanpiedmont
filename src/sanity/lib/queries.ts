@@ -149,3 +149,45 @@ export const artifactsIndexQuery = /* groq */ `
   artifactType
 }
 `
+
+const essayBySlugQuery = /* groq */ `
+*[
+  _type == "essay" &&
+  defined(slug.current) &&
+  slug.current == $slug &&
+  !(_id in path("drafts.**"))
+][0]{
+  title,
+  dek,
+  publishedAt,
+  heroImage,
+  body[]{
+    ...,
+    _type == "artifactEmbed" => {
+      ...,
+      "artifact": artifact->{
+        _id,
+        title,
+        "slug": slug.current,
+        artifactType,
+        pillar,
+        civicTag,
+        summary,
+        heroImage
+      }
+    }
+  },
+  "authors": authors[]-> {name},
+  "section": section-> {title, "slug": slug.current},
+  "artifacts": artifacts[]->{
+    _id,
+    title,
+    "slug": slug.current,
+    artifactType,
+    pillar,
+    civicTag,
+    summary,
+    heroImage
+  }
+}
+`
