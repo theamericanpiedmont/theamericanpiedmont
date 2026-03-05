@@ -36,7 +36,7 @@ const typePairs: Array<{ key: string; val: SchemaTypeDefinition | undefined }> =
 // Throw a readable error instead of Sanity’s generic SchemaError
 for (const t of typePairs) {
   if (!t.val) throw new Error(`Sanity schema type import is undefined: ${t.key}`)
-  // @ts-expect-error Sanity types are structurally typed; name should exist
+  
   if (!t.val.name) throw new Error(`Sanity schema type missing "name": ${t.key}`)
 }
 
