@@ -242,161 +242,56 @@ const portableTextComponents: PortableTextComponents = {
 
     // ✅ Artifact embed
     artifactEmbed: ({ value }) => {
-      const a = value?.artifact as ArtifactRef | undefined
-      if (!a?.slug) {
-        return (
-          <aside className="my-12 relative left-1/2 -translate-x-1/2 w-[110vw] max-w-4xl rounded-2xl border border-black/10 bg-white/70 p-6 shadow-sm">
-            <p className="text-sm opacity-70">
-              (Artifact embed missing data — update GROQ to dereference the artifact reference.)
-            </p>
-          </aside>
-        )
-      }
+  const a = value?.artifact as ArtifactRef | undefined
+  if (!a?.slug) return null
 
-      const hasFile = !!a.heroFileUrl
-      const excerpt = (a.keyExcerpt || a.transcription || "").trim()
-      const excerptShort =
-        excerpt.length > 520 ? `${excerpt.slice(0, 520).trim()}…` : excerpt || null
+  // Most reliable first: raw Sanity asset URL; fallback to builder URL
+  const imgSrc =
+    a.heroImageUrl ||
+    (a.heroImage ? urlFor(a.heroImage).width(1200).quality(80).auto("format").url() : null)
 
-      // ✅ Most reliable first: raw Sanity asset URL; fallback to builder URL
-      const imgSrc =
-        a.heroImageUrl ||
-        (a.heroImage ? urlFor(a.heroImage).width(1800).quality(80).auto("format").url() : null)
+  // Use block caption first; fallback to artifact summary (short), then nothing
+  const caption = value?.caption || a.summary || ""
 
-      return (
-        <figure className="my-12 relative left-1/2 -translate-x-1/2 w-[110vw] max-w-5xl">
-          <div className="rounded-2xl border border-black/10 bg-white shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-black/10 bg-black/[0.02]">
-              <div className="text-[11px] font-semibold tracking-[0.2em] uppercase opacity-70">
-                Evidence
-              </div>
-              <Link
-                href={`/artifacts/${a.slug}`}
-                className="text-[11px] tracking-[0.2em] uppercase opacity-60 hover:opacity-90"
-              >
-                View →
-              </Link>
-            </div>
+  return (
+    <figure className="my-10">
+      {/* smaller than text column */}
+      <div className="mx-auto w-full max-w-[520px]">
+        {/* Header row (no white card) */}
+        <div className="mb-2 flex items-baseline justify-between gap-4">
+          <p className="text-[11px] font-semibold tracking-[0.2em] uppercase opacity-65">
+            Evidence
+          </p>
 
-            <div className="p-5 grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-5">
-              <div className="rounded-2xl border border-black/10 bg-black/[0.03] overflow-hidden">
-                {imgSrc ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={imgSrc}
-                    alt={a.title}
-                    className="w-full object-cover aspect-[4/3]"
-                    loading="lazy"
-                  />
-                ) : hasFile ? (
-                  <div className="p-5">
-                    <div className="text-[11px] font-semibold tracking-[0.2em] uppercase opacity-70">
-                      Document
-                    </div>
-                    <p className="mt-2 text-sm leading-relaxed opacity-80">
-                      This artifact includes an attached scan/PDF.
-                    </p>
-                    <a
-                      href={a.heroFileUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-4 inline-flex items-center rounded-xl border border-black/10 bg-white px-4 py-2 text-xs font-semibold tracking-[0.12em] uppercase hover:bg-black/[0.03]"
-                    >
-                      Open file →
-                    </a>
-                  </div>
-                ) : (
-                  <div className="aspect-[4/3] w-full flex items-center justify-center text-xs opacity-60">
-                    No preview available
-                  </div>
-                )}
+          <Link
+            href={`/artifacts/${a.slug}`}
+            className="text-[11px] tracking-[0.2em] uppercase opacity-55 hover:opacity-90"
+          >
+            View →
+          </Link>
+        </div>
 
-                {value?.caption ? (
-                  <div className="border-t border-black/10 bg-white px-4 py-3 text-xs leading-relaxed opacity-70">
-                    {value.caption}
-                  </div>
-                ) : null}
-              </div>
+        {/* Image (no card background) */}
+        {imgSrc ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={imgSrc}
+            alt={a.title}
+            className="w-full rounded-xl object-cover"
+            loading="lazy"
+          />
+        ) : null}
 
-              <div className="min-w-0">
-                <div className="text-[11px] tracking-[0.2em] uppercase opacity-60">
-                  {a.artifactType ? labelize(a.artifactType) : "Artifact"}
-                  {a.dateCreated ? <span> • {a.dateCreated}</span> : null}
-                </div>
-
-                <h4 className="mt-2 font-serif text-xl leading-snug">{a.title}</h4>
-
-                {a.summary ? (
-                  <p className="mt-2 text-sm leading-relaxed opacity-80">{a.summary}</p>
-                ) : null}
-
-                {excerptShort ? (
-                  <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-4">
-                    <div className="text-[11px] font-semibold tracking-[0.2em] uppercase opacity-70">
-                      {a.keyExcerpt ? "Key excerpt" : "Transcription"}
-                    </div>
-                    <p className="mt-2 text-sm leading-relaxed opacity-85 whitespace-pre-wrap">
-                      {excerptShort}
-                    </p>
-                  </div>
-                ) : null}
-
-                {a.archiveRef ? (
-                  <p className="mt-4 text-xs leading-relaxed opacity-70">
-                    <span className="font-semibold tracking-[0.12em] uppercase">Archive ref:</span>{" "}
-                    {a.archiveRef}
-                  </p>
-                ) : null}
-
-                {a.sourceUrl ? (
-                  <p className="mt-2 text-xs leading-relaxed opacity-70">
-                    <a
-                      href={a.sourceUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="underline underline-offset-4 hover:opacity-90"
-                    >
-                      Source link →
-                    </a>
-                  </p>
-                ) : null}
-
-                <div className="mt-4 flex flex-wrap gap-2 text-[11px] opacity-70">
-                  {a.pillar ? (
-                    <span className="rounded-full border border-black/10 px-2 py-0.5">
-                      {labelize(a.pillar)}
-                    </span>
-                  ) : null}
-                  {a.civicTag ? (
-                    <span className="rounded-full border border-black/10 px-2 py-0.5">
-                      {a.civicTag}
-                    </span>
-                  ) : null}
-                  {a.artifactType ? (
-                    <span className="rounded-full border border-black/10 px-2 py-0.5">
-                      {labelize(a.artifactType)}
-                    </span>
-                  ) : null}
-                </div>
-
-                {hasFile ? (
-                  <div className="mt-4">
-                    <a
-                      href={a.heroFileUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center rounded-xl border border-black/10 bg-white px-4 py-2 text-xs font-semibold tracking-[0.12em] uppercase hover:bg-black/[0.03]"
-                    >
-                      Open document →
-                    </a>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          </div>
-        </figure>
-      )
-    },
+        {/* Caption */}
+        {caption ? (
+          <figcaption className="mt-2 text-xs leading-relaxed opacity-70">
+            {caption}
+          </figcaption>
+        ) : null}
+      </div>
+    </figure>
+  )
+},
   },
 }
 
