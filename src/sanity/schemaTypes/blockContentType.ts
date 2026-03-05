@@ -40,22 +40,12 @@ export const blockContentType = defineType({
 
     // Existing inline image (keep if you want)
     
-    defineArrayMember({ type: "sidenote" }),
-    
+    // ✅ NEW: Story Image block (image + caption/credit + align)
     defineArrayMember({
-      type: "image",
-      icon: ImageIcon,
-      options: { hotspot: true },
-      fields: [
-        {
-          name: "alt",
-          type: "string",
-          title: "Alternative Text",
-        },
-      ],
+      type: "storyImage",
     }),
 
-    // ✅ NEW: Pull Quote block
+// ✅ NEW: Pull Quote block
     defineArrayMember({
       type: "tapPullQuote",
     }),
@@ -65,10 +55,7 @@ export const blockContentType = defineType({
       type: "artifactEmbed",
     }),
 
-    // ✅ NEW: Story Image block (image + caption/credit + align)
-    defineArrayMember({
-      type: "storyImage",
-    }),
+    defineArrayMember({ type: "sidenote" }),
 
     // ✅ NEW: Gallery block (carousel on frontend)
     defineArrayMember({
