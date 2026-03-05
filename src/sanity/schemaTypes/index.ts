@@ -34,11 +34,21 @@ const typePairs: Array<{ key: string; val: SchemaTypeDefinition | undefined }> =
   // { key: "galleryType", val: galleryType },
 ]
 
-// Throw a readable error instead of Sanity’s generic SchemaError
+// Throw readable errors instead of Sanity’s generic SchemaError
+const names = new Map<string, string>() // name -> key
+
 for (const t of typePairs) {
   if (!t.val) throw new Error(`Sanity schema type import is undefined: ${t.key}`)
-  
-  if (!t.val.name) throw new Error(`Sanity schema type missing "name": ${t.key}`)
+
+  const name = (t.val as any).name
+  if (!name) throw new Error(`Sanity schema type missing "name": ${t.key}`)
+
+  if (names.has(name)) {
+    throw new Error(
+      `Duplicate Sanity schema type name "${name}" from "${t.key}" and "${names.get(name)}"`
+    )
+  }
+  names.set(name, t.key)
 }
 
 export const schema: { types: SchemaTypeDefinition[] } = {
