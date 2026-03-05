@@ -46,7 +46,7 @@ defineField({
 }),
 
 defineField({
-  name: "pullQuote",
+  name: "fieldNotePullQuote",
   title: "Pull quote",
   type: "text",
   rows: 3,
