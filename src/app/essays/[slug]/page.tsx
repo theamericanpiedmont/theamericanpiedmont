@@ -5,11 +5,8 @@ import { PortableText } from "@portabletext/react"
 import type { PortableTextComponents } from "@portabletext/react"
 import imageUrlBuilder from "@sanity/image-url"
 import { client } from "@/sanity/lib/client"
-import ArtifactPreviewImage from "@/components/ArtifactPreviewImage"
-import { formatLongDate, labelize } from "../../../lib/format"
-
-// ✅ import the query from sanity/lib so this page stays in sync
 import { essayBySlugQuery } from "@/sanity/lib/queries"
+import { formatLongDate, labelize } from "../../../lib/format"
 
 export const revalidate = 60
 
@@ -26,7 +23,6 @@ type ArtifactRef = {
   summary?: string
   heroImage?: any
 
-  // ✅ new fields (from updated GROQ)
   heroImageUrl?: string
   heroFileUrl?: string
   sourceUrl?: string
@@ -244,34 +240,32 @@ const portableTextComponents: PortableTextComponents = {
       )
     },
 
-    // ✅ UPDATED ArtifactEmbed: show “what’s in the artifact”
+    // ✅ Artifact embed
     artifactEmbed: ({ value }) => {
       const a = value?.artifact as ArtifactRef | undefined
       if (!a?.slug) {
         return (
           <aside className="my-12 relative left-1/2 -translate-x-1/2 w-[110vw] max-w-4xl rounded-2xl border border-black/10 bg-white/70 p-6 shadow-sm">
             <p className="text-sm opacity-70">
-  (Artifact embed missing data — update GROQ to dereference the artifact reference.)
-</p>
+              (Artifact embed missing data — update GROQ to dereference the artifact reference.)
+            </p>
           </aside>
         )
       }
 
-      const hasImage = !!a.heroImage
       const hasFile = !!a.heroFileUrl
       const excerpt = (a.keyExcerpt || a.transcription || "").trim()
       const excerptShort =
         excerpt.length > 520 ? `${excerpt.slice(0, 520).trim()}…` : excerpt || null
 
+      // ✅ Most reliable first: raw Sanity asset URL; fallback to builder URL
       const imgSrc =
-  a.heroImage
-    ? urlFor(a.heroImage).width(1800).quality(80).auto("format").url()
-    : a.heroImageUrl || null
+        a.heroImageUrl ||
+        (a.heroImage ? urlFor(a.heroImage).width(1800).quality(80).auto("format").url() : null)
 
       return (
         <figure className="my-12 relative left-1/2 -translate-x-1/2 w-[110vw] max-w-5xl">
           <div className="rounded-2xl border border-black/10 bg-white shadow-sm overflow-hidden">
-            {/* Header */}
             <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-black/10 bg-black/[0.02]">
               <div className="text-[11px] font-semibold tracking-[0.2em] uppercase opacity-70">
                 Evidence
@@ -284,13 +278,17 @@ const portableTextComponents: PortableTextComponents = {
               </Link>
             </div>
 
-            {/* Body */}
             <div className="p-5 grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-5">
-              {/* Preview panel */}
               <div className="rounded-2xl border border-black/10 bg-black/[0.03] overflow-hidden">
-                {a.heroImage ? (
-  <ArtifactPreviewImage image={a.heroImage} alt={a.title} />
-) : hasFile ? (
+                {imgSrc ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={imgSrc}
+                    alt={a.title}
+                    className="w-full object-cover aspect-[4/3]"
+                    loading="lazy"
+                  />
+                ) : hasFile ? (
                   <div className="p-5">
                     <div className="text-[11px] font-semibold tracking-[0.2em] uppercase opacity-70">
                       Document
@@ -313,7 +311,6 @@ const portableTextComponents: PortableTextComponents = {
                   </div>
                 )}
 
-                {/* Optional embed caption */}
                 {value?.caption ? (
                   <div className="border-t border-black/10 bg-white px-4 py-3 text-xs leading-relaxed opacity-70">
                     {value.caption}
@@ -321,7 +318,6 @@ const portableTextComponents: PortableTextComponents = {
                 ) : null}
               </div>
 
-              {/* Text / metadata */}
               <div className="min-w-0">
                 <div className="text-[11px] tracking-[0.2em] uppercase opacity-60">
                   {a.artifactType ? labelize(a.artifactType) : "Artifact"}
@@ -347,9 +343,7 @@ const portableTextComponents: PortableTextComponents = {
 
                 {a.archiveRef ? (
                   <p className="mt-4 text-xs leading-relaxed opacity-70">
-                    <span className="font-semibold tracking-[0.12em] uppercase">
-                      Archive ref:
-                    </span>{" "}
+                    <span className="font-semibold tracking-[0.12em] uppercase">Archive ref:</span>{" "}
                     {a.archiveRef}
                   </p>
                 ) : null}
@@ -463,9 +457,9 @@ export default async function EssayPage({
 
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
             {essay.artifacts.map((a) => {
-              const imgUrl = a.heroImage
-                ? urlFor(a.heroImage).width(900).height(650).quality(80).url()
-                : null
+              const imgSrc =
+                a.heroImageUrl ||
+                (a.heroImage ? urlFor(a.heroImage).width(900).quality(80).auto("format").url() : null)
 
               return (
                 <Link
@@ -473,15 +467,15 @@ export default async function EssayPage({
                   href={`/artifacts/${a.slug}`}
                   className="group rounded-xl border border-black/10 bg-white p-4 shadow-sm transition hover:shadow-md"
                 >
-                  {imgUrl ? (
-  // eslint-disable-next-line @next/next/no-img-element
-  <img
-    src={imgUrl}
-    alt={a.title}
-    className="mb-3 h-40 w-full rounded-lg border border-black/10 object-cover"
-    loading="lazy"
-  />
-) : null}
+                  {imgSrc ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={imgSrc}
+                      alt={a.title}
+                      className="mb-3 h-40 w-full rounded-lg border border-black/10 object-cover"
+                      loading="lazy"
+                    />
+                  ) : null}
 
                   <div className="flex flex-wrap gap-2 text-[11px] opacity-70">
                     {a.pillar ? (
