@@ -135,7 +135,7 @@ const portableTextComponents: PortableTextComponents = {
   },
 
   types: {
-    pullQuote: ({ value }) => {
+    tapPullQuote: ({ value }) => {
       return (
         <figure className="my-10 rounded-2xl border border-black/10 bg-white/70 p-6 text-center shadow-sm">
           <blockquote className="font-serif text-2xl leading-snug">

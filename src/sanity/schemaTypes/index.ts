@@ -16,6 +16,8 @@ import { pullQuoteType } from "./pullQuoteType"
 // import { storyImageType } from "./storyImageType"
 // import { galleryType } from "./galleryType"
 
+
+
 const typePairs: Array<{ key: string; val: SchemaTypeDefinition | undefined }> = [
   { key: "authorType", val: authorType },
   { key: "sectionType", val: sectionType },
@@ -36,6 +38,7 @@ const typePairs: Array<{ key: string; val: SchemaTypeDefinition | undefined }> =
 
 // Throw readable errors instead of Sanity’s generic SchemaError
 const names = new Map<string, string>() // name -> key
+console.log("SCHEMA TYPES LOADED:", typePairs.map(t => `${t.key}:${(t.val as any)?.name}`))
 
 for (const t of typePairs) {
   if (!t.val) throw new Error(`Sanity schema type import is undefined: ${t.key}`)
