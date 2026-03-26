@@ -3,6 +3,7 @@ import { Spectral } from "next/font/google"
 import "./globals.css"
 import Masthead from "@/components/Masthead"
 import Footer from "@/components/Footer"
+import { Analytics } from "@vercel/analytics/react"
 
 
 const spectral = Spectral({
@@ -37,6 +38,7 @@ export default function RootLayout({
       <body className={`${spectral.variable} antialiased`}>
   <Masthead />
   {children}
+  <Analytics />
   <Footer />
 </body>
     </html>
